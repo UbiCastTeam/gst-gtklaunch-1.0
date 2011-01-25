@@ -1,5 +1,4 @@
 * fix filesrc/filesink live changing
-* use optparse for -v (gst debug level + internal one)
 * poll/notify for read-only properties and graphical update
 * print modified gst-launch compatible pipeline syntax
 * create proper installer
@@ -14,6 +13,3 @@
 
 HARD:
 * clutter-based interactive dot graph viewer (anti-bottleneck helper)
-
-DONE:
-* gst.ELEMENT type message tracking display

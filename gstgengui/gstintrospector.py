@@ -82,7 +82,7 @@ class Element:
 
         for property in _properties_list:
             if property.name in ignore_list:
-                logger.info("Property %s is in ignore list, skipping" %property.name)
+                logger.debug("Property %s is in ignore list, skipping" %property.name)
 
             elif property.value_type in NUMBER_GTYPES:
                 number_property = NumberProperty(property, self)

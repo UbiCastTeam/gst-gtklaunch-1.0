@@ -73,18 +73,7 @@ class MessagesDisplayer(event.User, gtk.Window):
                 COLUMN_SOURCE, data[COLUMN_SOURCE],
                 COLUMN_NAME, data[COLUMN_NAME],
                 COLUMN_DATA, data[COLUMN_DATA],
-                )
-
-    def fixed_toggled(self, cell, path, model):
-        # get toggled iter
-        iter = model.get_iter((int(path),))
-        fixed = model.get_value(iter, COLUMN_SOURCE)
-
-        # do something with the value
-        fixed = not fixed
-
-        # set new value
-        model.set(iter, COLUMN_SOURCE, fixed)
+        )
 
     def __add_columns(self, treeview):
         # column for source
@@ -104,8 +93,6 @@ class MessagesDisplayer(event.User, gtk.Window):
                                      text=COLUMN_DATA)
         column.set_sort_column_id(COLUMN_DATA)
         treeview.append_column(column)
-
-
 
 def main():
     MessagesDisplayer()

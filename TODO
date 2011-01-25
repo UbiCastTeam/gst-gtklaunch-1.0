@@ -8,6 +8,13 @@
 * message-powered widgets (level, analyse, ...)
 * integrate bottleneckfinder
 * add -m switch to start the view_messages panel before playing the pipeline
+* add GST_GENGUI_DEBUG env var for verbosity control
+* interop with stefan's performance measurement tools
+* rename to gst-gtklaunch ?
+* limit message display performance issues; set into horizontally scrollable container
+
+HARD:
+* clutter-based interactive dot graph viewer (anti-bottleneck helper)
 
 DONE:
 * gst.ELEMENT type message tracking display

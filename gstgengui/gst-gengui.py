@@ -13,32 +13,44 @@ logger = logging.getLogger('gst-gengui')
 import gobject
 gobject.threads_init()
 
-from gstmanager import PipelineManager
 
 if __name__ == '__main__':
+
+    from optparse import OptionParser
+    parser = OptionParser(usage="%prog [options] [pipeline description]")
+    parser.add_option("-v", "--verbose", action="store_true", dest="verbose", default=False, help="don't print status messages to stdout")
+
+    (options, args) = parser.parse_args()
+    print options, args
+
+    if options.verbose:
+        verbosity = 'DEBUG'
+    else:
+        verbosity = 'INFO'
 
     import logging, sys
 
     logging.basicConfig(
-        level=getattr(logging, "DEBUG"),
+        level=getattr(logging, verbosity),
         format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
         stream=sys.stderr
     )
 
-    def parse_argv(args):
-        cmd = ""
-        for n in range(1, len(args)):
-            cmd+="%s " %args[n]
-        logger.info("gst-launch pipeline is: %s" %cmd)
-        return cmd
-   
-    from sys import argv
-    if len(argv) <= 1:
-        logger.info("No gst-launch syntax detected, using config file")
-        import gstgengui.config
-        string = gstgengui.config.pipeline_desc
+    def parse_args(args):
+        desc = ""
+        for arg in args:
+            desc += " "+arg
+        logger.debug("gst-launch pipeline is: %s" %desc)
+        return desc 
+ 
+    if len(args) == 0:
+        logger.error("Empty pipeline unauthorized, quitting")
+        sys.exit(1)
     else:
-        string = parse_argv (argv)
+        string = parse_args(args)
+
+    # We import it later on otherwise it messes up optparse
+    from gstmanager import PipelineManager
     pipeline_launcher = PipelineManager(string)
 
     from gtk_controller import GtkGstController

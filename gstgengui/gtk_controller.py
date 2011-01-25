@@ -39,7 +39,9 @@ class GtkGstController:
         logger.info("destroy signal occurred")
         gtk.main_quit()
 
-    def __init__(self, pipeline_launcher):
+    def __init__(self, pipeline_launcher, show_messages=False):
+        if show_messages:
+            self._on_show_messages()
         self.pipeline_launcher = pipeline_launcher
         self.pipeline_launcher.bus.enable_sync_message_emission()
         self.pipeline_launcher.bus.connect('sync-message::element', self.on_sync_message)

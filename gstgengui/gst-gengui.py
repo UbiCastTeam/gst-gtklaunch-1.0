@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-Copyright 2009, Florent Thiery, under the terms of LGPL
+Copyright 2010, Florent Thiery, under the terms of LGPL
 """
 import os
 os.environ['GST_DEBUG_DUMP_DOT_DIR'] = '/tmp/'
@@ -13,12 +13,12 @@ logger = logging.getLogger('gst-gengui')
 import gobject
 gobject.threads_init()
 
-
 if __name__ == '__main__':
 
     from optparse import OptionParser
     parser = OptionParser(usage="%prog [options] [pipeline description]")
-    parser.add_option("-v", "--verbose", action="store_true", dest="verbose", default=False, help="don't print status messages to stdout")
+    parser.add_option("-v", "--verbose", action="store_true", dest="verbose", default=False, help="Use DEBUG verbosity level")
+    parser.add_option("-m", "--messages", action="store_true", dest="show_messages", default=False, help="Show gst.Element messages window before setting the pipeline to PLAYING")
 
     (options, args) = parser.parse_args()
     print options, args
@@ -54,6 +54,6 @@ if __name__ == '__main__':
     pipeline_launcher = PipelineManager(string)
 
     from gtk_controller import GtkGstController
-    controller = GtkGstController(pipeline_launcher)
+    controller = GtkGstController(pipeline_launcher, options.show_messages)
 
     controller.main()

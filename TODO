@@ -1,0 +1,10 @@
+* fix filesrc/filesink live changing
+* use optparse for -v (gst debug level + internal one)
+* poll/notify for read-only properties and graphical update
+* print modified gst-launch compatible pipeline syntax
+* create proper installer
+* find a way to apply sliders only on release
+* non-live changeable parameters handling (MUTABLE prop)
+* gst.ELEMENT type message tracking display
+* message-powered widgets (level, analyse, ...)
+* integrate bottleneckfinder

@@ -1,0 +1,19 @@
+Random segfault (trace):
+
+Happens sometimes when trying to redirect X texture to the gtk drawable and if there is an element such as videobalance in the pipeline (after receiving the "prepare-xwindow-id" event)
+
+Can be reproduced by either launching it periodically or by refreshing the pipeline quickly
+
+Traces:
+
+* Raw segfault
+* "Fatal Python error: GC object already tracked"
+* "The program 'gst-gengui' received an X Window System error.
+This probably reflects a bug in the program.
+The error was 'BadValue (integer parameter out of range for operation)'.
+  (Details: serial 64 error_code 2 request_code 141 minor_code 19)
+  (Note to programmers: normally, X errors are reported asynchronously;
+   that is, you will receive the error a while after causing it.
+   To debug your program, run it with the --sync command line
+   option to change this behavior. You can then get a meaningful
+   backtrace from your debugger if you break on the gdk_x_error() function.)"

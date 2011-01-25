@@ -5,6 +5,9 @@
 * create proper installer
 * find a way to apply sliders only on release
 * non-live changeable parameters handling (MUTABLE prop)
-* gst.ELEMENT type message tracking display
 * message-powered widgets (level, analyse, ...)
 * integrate bottleneckfinder
+* add -m switch to start the view_messages panel before playing the pipeline
+
+DONE:
+* gst.ELEMENT type message tracking display

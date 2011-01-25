@@ -129,6 +129,7 @@ class GtkGstController:
         pause_btn = self._create_button(label="Pause", callback=pipeline_launcher.pause, container=container_btns)
         eos_btn = self._create_button(label="Send EOS", callback=pipeline_launcher.send_eos, container=container_btns)
         dot_btn = self._create_button(label="Show tree", callback=self._on_show_tree, container=container_btns)
+        messages_btn = self._create_button(label="Show messages", callback=self._on_show_messages, container=container_btns)
 
         return container
 
@@ -165,6 +166,10 @@ class GtkGstController:
         self._check_for_pipeline_position()
         self._check_for_pipeline_state()
         return True
+
+    def _on_show_messages(self, *args):
+        from messages import MessagesDisplayer
+        test  = MessagesDisplayer()
 
     def _on_show_tree(self, *args):
         dotfile = self.pipeline_launcher.dump_dot_file()

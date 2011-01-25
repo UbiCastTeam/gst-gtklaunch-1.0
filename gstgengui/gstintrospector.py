@@ -31,6 +31,7 @@ class Property:
         self.name = property.name
         self.human_name = property.nick
         self.value_type = property.value_type
+        self.is_readonly = (property.flags == 225)
         self.update_value()
 
     def update_value(self):

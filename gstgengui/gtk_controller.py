@@ -42,6 +42,9 @@ class GtkGstController:
     def __init__(self, pipeline_launcher, show_messages=False):
         if show_messages:
             self._on_show_messages()
+
+        self.prop_watchlist = list()
+
         self.pipeline_launcher = pipeline_launcher
         self.pipeline_launcher.bus.enable_sync_message_emission()
         self.pipeline_launcher.bus.connect('sync-message::element', self.on_sync_message)
@@ -167,6 +170,7 @@ class GtkGstController:
     def _do_checks(self):
         self._check_for_pipeline_position()
         self._check_for_pipeline_state()
+        self._poll_properties_watchlist()
         return True
 
     def _on_show_messages(self, *args):
@@ -294,7 +298,14 @@ class GtkGstController:
         container.pack_end(spinner, False, True, 20)
         container.pack_end(slider, True, True, 20)
 
-        adj.connect("value_changed", self.apply_changes, prop)
+        if not prop.is_readonly:
+            adj.connect("value_changed", self.apply_changes, prop)
+        else:
+            container.set_sensitive(False)
+            gst_elt = prop.parent_element._gst_element
+            # FIXME: why doesn't it work ?
+            #gst_elt.connect('notify::%s' %prop.name, adj.set_value)
+            self.notify_property(gst_elt, prop.name, adj.set_value)
 
         label.show()
         spinner.show()
@@ -302,10 +313,26 @@ class GtkGstController:
 
         return container
 
+    # FIXME: notify:: should to this !
+    def _poll_properties_watchlist(self):
+        # polling is called by _do_checks
+        for prop in self.prop_watchlist:
+            value = prop['elt'].get_property(prop['prop_name'])
+            if value != prop['last_seen']:
+                prop['cb'](value)
+        return True
+
+    def notify_property(self, element, prop_name, callback):
+        self.prop_watchlist.append({'elt': element, 'prop_name': prop_name, 'cb': callback, 'last_seen': element.get_property(prop_name)})
+    ################################################
+
     def _create_check_btn(self, prop):
         button = gtk.CheckButton(prop.human_name)
         button.set_active(prop.value)
-        button.connect("toggled", self.apply_changes, prop)
+        if not prop.is_readonly:
+            button.connect("toggled", self.apply_changes, prop)
+        else:
+            button.set_sensitive(False)
         button.show()
         return button
 
@@ -325,7 +352,11 @@ class GtkGstController:
         label.show()
         entry = gtk.Entry()
         entry.set_text(prop.value)
-        entry.connect("activate", self.apply_changes, prop)
+
+        if not prop.is_readonly:
+            entry.connect("activate", self.apply_changes, prop)
+        else:
+            entry.set_sensitive(False)
         entry.show()
         container.pack_start(label, False, True, 20)
         container.pack_end(entry, False, True, 20)

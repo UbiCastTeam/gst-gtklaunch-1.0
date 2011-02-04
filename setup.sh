@@ -15,8 +15,10 @@ then
     PYTHON_DIR=$PYTHON_26_DIR
 fi
 
-TARGET=/usr/local/lib/$PYTHON_DIR/gstgengui
+PREFIX=/usr/local
+TARGET=$PREFIX/lib/$PYTHON_DIR/gstgengui
 echo Detected python$PYTHON_VER, installing to $TARGET
+sudo mkdir -p $PREFIX/lib/$PYTHON_DIR
 sudo ln -sf `pwd`/gstgengui $TARGET 
-sudo ln -sf `pwd`/gstgengui/gst-gengui.py /usr/local/bin/gst-gengui
-sudo chmod +x /usr/local/bin/gst-gengui
+sudo ln -sf `pwd`/gstgengui/gst-gengui.py $PREFIX/bin/gst-gengui
+sudo chmod +x $PREFIX/bin/gst-gengui

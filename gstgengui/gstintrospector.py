@@ -12,10 +12,11 @@ Copyright 2009, Florent Thiery, under the terms of LGPL
 
 import gobject
 import gst
-from config import *
 
 import logging
 logger = logging.getLogger('gst-gengui')
+
+IGNORE_LIST = []
 
 NUMBER_GTYPES = (gobject.TYPE_INT64, gobject.TYPE_INT, gobject.TYPE_UINT, gobject.TYPE_UINT64, gobject.TYPE_DOUBLE, gobject.TYPE_FLOAT, gobject.TYPE_LONG, gobject.TYPE_ULONG)
 
@@ -82,7 +83,7 @@ class Element:
         self.enum_properties = enum_properties = []
 
         for property in _properties_list:
-            if property.name in ignore_list:
+            if property.name in IGNORE_LIST:
                 logger.debug("Property %s is in ignore list, skipping" %property.name)
 
             elif property.value_type in NUMBER_GTYPES:

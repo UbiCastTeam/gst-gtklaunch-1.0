@@ -21,7 +21,6 @@ if __name__ == '__main__':
     parser.add_option("-m", "--messages", action="store_true", dest="show_messages", default=False, help="Show gst.Element messages window before setting the pipeline to PLAYING")
 
     (options, args) = parser.parse_args()
-    print options, args
 
     if options.verbose:
         verbosity = 'DEBUG'

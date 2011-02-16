@@ -5,7 +5,7 @@
 Copyright 2010, Florent Thiery, under the terms of LGPL
 """
 import os
-os.environ['GST_DEBUG_DUMP_DOT_DIR'] = '/tmp/'
+os.environ['GST_DEBUG_DUMP_DOT_DIR'] = '/tmp'
 
 import logging
 logger = logging.getLogger('gst-gengui')
@@ -56,4 +56,4 @@ if __name__ == '__main__':
     from gtk_controller import GtkGstController
     controller = GtkGstController(pipeline_launcher, options.show_messages)
 
-    controller.main()
+    controller.gtk_main()

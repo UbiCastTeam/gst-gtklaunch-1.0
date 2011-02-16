@@ -39,20 +39,20 @@ class GtkGstController:
         logger.info("destroy signal occurred")
         gtk.main_quit()
 
-    def __init__(self, pipeline_launcher, show_messages=False):
-        if show_messages:
-            self._on_show_messages()
-
+    def __init__(self, pipeline_launcher, show_messages=False, display_preview=True):
         self.prop_watchlist = list()
 
         self.pipeline_launcher = pipeline_launcher
+        if show_messages:
+            self._on_show_messages()
+
         self.pipeline_launcher.bus.enable_sync_message_emission()
         self.pipeline_launcher.bus.connect('sync-message::element', self.on_sync_message)
 
         self.poll_id = None
 
         self.window = gtk.Window(gtk.WINDOW_TOPLEVEL)
-        self.window.set_title("gst-gengui")
+        self.window.set_title(pipeline_launcher.pipeline.get_name())
         self.window.set_size_request(800, 600)
         # Sets the border width of the window.
         self.window.set_border_width(6)
@@ -77,14 +77,13 @@ class GtkGstController:
         # play/stop/pause controls
         pipeline_controls = self._create_pipeline_controls(pipeline_launcher)
 
-        self.resizable_container.pack1(self.preview_container, resize=True, shrink=False)
+        if display_preview:
+            self.resizable_container.pack1(self.preview_container, resize=True, shrink=False)
         self.resizable_container.pack2(self.scrolled_window, resize=False, shrink=False)
 
         self.main_container.pack_start(self.resizable_container, True, True)
         self.main_container.pack_end(pipeline_controls, False, False)
 
-        self.window.connect("delete_event", self.delete_event)
-        self.window.connect("destroy", self.destroy)
 
         self.window.show_all()
 
@@ -142,11 +141,16 @@ class GtkGstController:
         self.pipeline_launcher.run()
         self._start_pollings()
 
+    def gtk_main(self):
+        self.main()
+        self.window.connect("delete_event", self.delete_event)
+        self.window.connect("destroy", self.destroy)
+        gobject.idle_add(self.run_pipeline)
+        gtk.main()
+
     def main(self):
         self._build_elements()
-        gobject.idle_add(self.run_pipeline)
         gobject.timeout_add(500, self._check_for_pipeline_changes)
-        gtk.main()
 
     def stop_pipeline(self, *args):
         self.pipeline_launcher.stop(*args)
@@ -175,7 +179,7 @@ class GtkGstController:
 
     def _on_show_messages(self, *args):
         from messages import MessagesDisplayer
-        test  = MessagesDisplayer()
+        test  = MessagesDisplayer(pipelinemanager_instance=self.pipeline_launcher)
 
     def _on_show_tree(self, *args):
         dotfile = self.pipeline_launcher.dump_dot_file()

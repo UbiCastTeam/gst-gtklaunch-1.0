@@ -12,11 +12,14 @@ logger = logging.getLogger('gstmanager')
 
 import gst
 pipeline_desc = "videotestsrc ! xvimagesink"
-import event
+try:
+    import easyevent
+except Exception:
+    import event as easyevent
 
-class PipelineManager(event.User):
+class PipelineManager(easyevent.User):
     def __init__(self, pipeline_string=None, name=None):
-        event.User.__init__(self)
+        easyevent.User.__init__(self)
         self.send_debug = False
         self.name = name
         if pipeline_string is not None: 
@@ -185,7 +188,7 @@ class PipelineManager(event.User):
             name = message.structure.get_name()
             res = message.structure
             source = (str(message.src)).split(":")[2].split(" ")[0]
-            #self.launch_event(name, {"source": source, "data": res})
+            self.launch_event(name, {"source": source, "data": res})
             self.launch_event('gst_element_message', {"source": source, "name": name, "data": res})
         else:
             if self.send_debug:

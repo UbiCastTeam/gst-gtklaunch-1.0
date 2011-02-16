@@ -4,10 +4,11 @@ gst-gengui README
 gst-gengui is an utility for testing and controlling live GStreamer pipelines and elements.
 It will inspect the specified pipeline to create the GTK GUI "automagically", based on the value type of properties.
 
-gst-gengui currently requires (Ubuntu 8.04/8.10 package names):
+gst-gengui currently requires (Ubuntu 8.04/8.10/10.04 package names):
    * python-gtk2
    * python-gst0.10
    * python-gobject
+   * graphviz
    * xdot python interactive dot viewer (sudo easy_install xdot)
 
 Non-packaged dependancies:

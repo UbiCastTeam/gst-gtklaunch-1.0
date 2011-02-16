@@ -3,7 +3,10 @@
 
 import gobject
 import gtk
-import event
+try:
+    import easyevent
+except Exception:
+    import event as easyevent
 
 (
     COLUMN_SOURCE,
@@ -11,16 +14,24 @@ import event
     COLUMN_DATA,
 ) = range(3)
 
-class MessagesDisplayer(event.User, gtk.Window):
-    def __init__(self, parent=None):
-        event.User.__init__(self)
+class MessagesDisplayer(easyevent.User, gtk.Window):
+    def __init__(self, parent=None, pipelinemanager_instance=None):
+        easyevent.User.__init__(self)
         self.register_event('gst_element_message')
+
+        self.pipelinemanager_instance = pipelinemanager_instance
+
         gtk.Window.__init__(self)
         try:
             self.set_screen(parent.get_screen())
         except AttributeError:
-            self.connect('destroy', lambda *w: gtk.main_quit())
-        self.set_title(self.__class__.__name__)
+            #self.connect('destroy', lambda *w: gtk.main_quit())
+            pass
+        if pipelinemanager_instance is not None:
+            title = pipelinemanager_instance.pipeline.get_name()
+        else:
+            title = self.__class__.__name__
+        self.set_title(title)
 
         self.set_border_width(8)
         self.set_default_size(500, 250)
@@ -52,6 +63,9 @@ class MessagesDisplayer(event.User, gtk.Window):
         self.show_all()
 
     def evt_gst_element_message(self, event):
+        if self.pipelinemanager_instance is not None:
+            if not event.source.pipeline.get_name() == self.pipelinemanager_instance.pipeline.get_name():
+                return
         data = event.content
         message_data = data['data']
         keys = message_data.keys()

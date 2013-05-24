@@ -48,4 +48,6 @@ The config file contains static declarations for:
 * ignore-list: properties having one of these names will not be "introspected"
 * pipeline_desc: gstreamer pipeline description, in gst-launch-like syntax. caps need to be set the following way (without the quotes):
 
+```python
 pipeline_desc = "videotestsrc ! video/x-raw, format=(string)YUY2, width=(int)320, height=(int)240, framerate=(fraction)15/1 ! videoconvert !  videobalance ! queue ! xvimagesink"
+```

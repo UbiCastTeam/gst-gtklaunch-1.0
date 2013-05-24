@@ -29,7 +29,9 @@ It has been tested on Ubuntu 13.04
 ## Usage
 
 Will launch the gst-launch-compliant pipeline description:
+```bash
 gst-gengui videotestsrc ! xvimagesink sync=false
+```
 
 If no argument is given, it will launch the pipeline description found in the gstgengui/config.py file
 

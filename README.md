@@ -44,7 +44,11 @@ Note: using the following as command from this directory instead of gst-gengui w
 PYTHONPATH=$PWD python gstgengui/gst-gengui.py
 ```
 
-Install symlinks: execute setup.sh
+Install symlinks: 
+
+```bash
+./setup.sh
+```
 
 ## Options
 

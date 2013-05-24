@@ -1,20 +1,47 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 
-import pygtk
-pygtk.require('2.0')
-import gtk
-import gobject
+# * This Program is free software; you can redistribute it and/or
+# * modify it under the terms of the GNU Lesser General Public
+# * License as published by the Free Software Foundation; either
+# * version 2.1 of the License, or (at your option) any later version.
+# *
+# * Libav is distributed in the hope that it will be useful,
+# * but WITHOUT ANY WARRANTY; without even the implied warranty of
+# * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# * Lesser General Public License for more details.
+# *
+# * You should have received a copy of the GNU Lesser General Public
+# * License along with Libav; if not, write to the Free Software
+# * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
+"""
+Gst-gengui: Gtk UI builder
+
+Copyright 2009, Florent Thiery, under the terms of LGPL
+Copyright 2013, Dirk Van Haerenborgh, under the terms of LGPL
+
+"""
+__author__ = ("Florent Thiery <fthiery@gmail.com>", "Dirk Van Haerenborgh <vhdirk@gmail.com>")
+
+
+
+import gi
+gi.require_version('Gst', '1.0')
+from gi.repository import GLib, GObject, Gst, Gio, Gtk
+from gi.repository import Gdk, GdkX11, GstVideo
 
 import logging
 logger = logging.getLogger('gtk-gstgengui')
 
 from gstintrospector import PipelineIntrospector
 
-class VideoWidget(gtk.DrawingArea):
+class VideoWidget(Gtk.DrawingArea):
     def __init__(self):
-        gtk.DrawingArea.__init__(self)
+        Gtk.DrawingArea.__init__(self)
         self.imagesink = None
-        self.unset_flags(gtk.DOUBLE_BUFFERED)
+        self.set_double_buffered(False)
+        #self.unset_flags(Gtk.DOUBLE_BUFFERED)
 
     def do_expose_event(self, event):
         if self.imagesink:
@@ -24,11 +51,12 @@ class VideoWidget(gtk.DrawingArea):
             return True
 
     def set_sink(self, sink):
-        assert self.window.xid
+        xid = self.get_property('window').get_xid()
+        assert xid
         self.imagesink = sink
-        self.imagesink.set_xwindow_id(self.window.xid)
+        self.imagesink.set_window_handle(xid)
 
-class GtkGstController:
+class GtkGstController(object):
 
     def delete_event(self, widget, event, data=None):
         logger.info("delete event occurred")
@@ -37,7 +65,7 @@ class GtkGstController:
 
     def destroy(self, widget, data=None):
         logger.info("destroy signal occurred")
-        gtk.main_quit()
+        Gtk.main_quit()
 
     def __init__(self, pipeline_launcher, show_messages=False, display_preview=True):
         self.prop_watchlist = list()
@@ -51,27 +79,27 @@ class GtkGstController:
 
         self.poll_id = None
 
-        self.window = gtk.Window(gtk.WINDOW_TOPLEVEL)
+        self.window = Gtk.Window()#Gtk.WINDOW_TOPLEVEL)
         self.window.set_title(pipeline_launcher.pipeline.get_name())
         self.window.set_size_request(800, 600)
         # Sets the border width of the window.
         self.window.set_border_width(6)
 
-        self.main_container = gtk.VBox(False, 0)
+        self.main_container = Gtk.VBox(False, 0)
         self.window.add(self.main_container)
 
-        #self.resizable_container = gtk.VBox(False, 0)
-        self.resizable_container = gtk.VPaned()
-        self.properties_container = gtk.VBox(False, 0)
+        #self.resizable_container = Gtk.VBox(False, 0)
+        self.resizable_container = Gtk.VPaned()
+        self.properties_container = Gtk.VBox(False, 0)
 
-        # graphical pipeline output
-        self.preview_container = gtk.HBox(False, 0)
+        # graphical pipeline outpu
+        self.preview_container = Gtk.HBox(False, 0)
         self.preview_container.set_size_request(800,200)
 
         # parameter area
-        self.scrolled_window = scrolled_window = gtk.ScrolledWindow()
+        self.scrolled_window = scrolled_window = Gtk.ScrolledWindow()
         scrolled_window.set_border_width(0)
-        scrolled_window.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_ALWAYS)
+        scrolled_window.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.ALWAYS)
         scrolled_window.add_with_viewport(self.properties_container)
 
         # play/stop/pause controls
@@ -81,17 +109,18 @@ class GtkGstController:
             self.resizable_container.pack1(self.preview_container, resize=True, shrink=False)
         self.resizable_container.pack2(self.scrolled_window, resize=False, shrink=False)
 
-        self.main_container.pack_start(self.resizable_container, True, True)
-        self.main_container.pack_end(pipeline_controls, False, False)
+        self.main_container.pack_start(self.resizable_container, True, True, 0)
+        self.main_container.pack_end(pipeline_controls, False, False, 0)
 
 
         self.window.show_all()
 
     def on_sync_message(self, bus, message):
-        if message.structure is None:
+        print(message.get_structure().get_name())
+        if message.get_structure() is None:
             return
-        if message.structure.get_name() == 'prepare-xwindow-id':
-            logger.debug("prepare-xwindow-id, %s" %message)
+        if message.get_structure().get_name() == 'prepare-window-handle':
+            logger.debug("prepare-window-handle, {0}".format(message))
             self._create_videowidget(message)
 
     def _create_videowidget(self, message):
@@ -100,19 +129,19 @@ class GtkGstController:
         videowidget.show()
         self.preview_container.pack_start(videowidget, True, True, 0)
         # Sync with the X server before giving the X-id to the sink
-        gobject.idle_add(gtk.gdk.display_get_default().sync)
-        #gtk.gdk.display_get_default().sync()
-        gobject.idle_add(videowidget.set_sink, message.src)
+        GObject.idle_add(Gdk.Display.get_default().sync)
+        #Gtk.gdk.display_get_default().sync()
+        GObject.idle_add(videowidget.set_sink, message.src)
         #videowidget.set_sink(message.src)
         message.src.set_property('force-aspect-ratio', True)
 
     def _create_pipeline_controls(self, pipeline_launcher):
-        container = gtk.VBox(False,3)
+        container = Gtk.VBox(False,3)
 
-        label = gtk.Label("Pipeline description")
-        entry = gtk.TextView()
+        label = Gtk.Label("Pipeline description")
+        entry = Gtk.TextView()
         entry.set_size_request(400,50)
-        entry.set_wrap_mode(gtk.WRAP_CHAR)
+        #entry.set_wrap_mode(Gtk.WRAP_CHAR) #XXX
         self.textbuffer = textbuffer = entry.get_buffer()
         textbuffer.set_text(pipeline_launcher.pipeline_desc)
         textbuffer.set_modified(False)
@@ -120,7 +149,7 @@ class GtkGstController:
         container.add(label)
         container.add(entry)
 
-        container_btns = gtk.HBox()
+        container_btns = Gtk.HBox()
         container.add(container_btns)
 
         self.refresh_button = refresh_btn = self._create_button(label="Refresh", callback=self._refresh, container=container_btns)
@@ -145,12 +174,12 @@ class GtkGstController:
         self.main()
         self.window.connect("delete_event", self.delete_event)
         self.window.connect("destroy", self.destroy)
-        gobject.idle_add(self.run_pipeline)
-        gtk.main()
+        GObject.idle_add(self.run_pipeline)
+        Gtk.main()
 
     def main(self):
         self._build_elements()
-        gobject.timeout_add(500, self._check_for_pipeline_changes)
+        GObject.timeout_add(500, self._check_for_pipeline_changes)
 
     def stop_pipeline(self, *args):
         self.pipeline_launcher.stop(*args)
@@ -164,11 +193,11 @@ class GtkGstController:
 
     def _start_pollings(self):
         if not self.poll_id:
-            self.poll_id = gobject.timeout_add(500, self._do_checks)
+            self.poll_id = GObject.timeout_add(500, self._do_checks)
 
     def _stop_pollings(self):
         if self.poll_id:
-            gobject.source_remove(self.poll_id)
+            GObject.source_remove(self.poll_id)
             self.poll_id = None
 
     def _do_checks(self):
@@ -200,12 +229,11 @@ class GtkGstController:
     def _check_for_pipeline_position(self):
         duration = str(self.pipeline_launcher.get_duration())
         position = str(self.pipeline_launcher.get_position())
-        self.position_label.set_text("Position: %s s / %s s" %(position, duration))
+        self.position_label.set_text("Position: {0} s / {1} s".format(position, duration))
 
     def _check_for_pipeline_changes(self):
         if self.textbuffer.get_modified():
-            #print "Change detected"
-            self.new_description = self.textbuffer.get_text(*self.textbuffer.get_bounds())
+            self.new_description = self.textbuffer.get_text(*self.textbuffer.get_bounds(), include_hidden_chars=False)
             self.refresh_button.set_sensitive(True)
         return True
 
@@ -219,7 +247,7 @@ class GtkGstController:
     def _refresh(self, *args):
         self._clean_controls()
         self.stop_pipeline()
-        logger.info("Refreshing pipeline with description: %s" %self.new_description)
+        logger.info("Refreshing pipeline with description: {0}" .format(self.new_description))
         self.pipeline_launcher.redefine_pipeline(new_string=self.new_description)
         self.pipeline_launcher.bus.connect('message::element', self.on_sync_message)
         self.pipeline_launcher.run()
@@ -232,13 +260,13 @@ class GtkGstController:
             self.properties_container.remove(item)
 
     def _create_label(self, label="Hello", container=None):
-        label = gtk.Label(label)
+        label = Gtk.Label.new(label)
         if container is not None:
            container.add(label)
         return label
 
     def _create_button(self, label="Hello", callback=None, callback_args=None, container=None):
-        button = gtk.Button(label)
+        button = Gtk.Button(label)
         button.show()
         if container is not None:
             container.add(button)
@@ -247,10 +275,10 @@ class GtkGstController:
         return button
 
     def _create_element_widget(self, element):
-        mcontainer = gtk.Expander(element.name) 
-        container = gtk.VBox()
+        mcontainer = Gtk.Expander.new(element.name) 
+        container = Gtk.VBox()
         mcontainer.add(container)
-        logger.debug("Element name: %s" %element.name)
+        logger.debug("Element name: {0}".format(element.name))
         if len(element.number_properties) > 0:
             for number_property in element.number_properties:
                 spinner = self._create_spinner(number_property)
@@ -282,13 +310,13 @@ class GtkGstController:
             step_incr=0.1
             num_digits=1
 
-        adj = gtk.Adjustment(value=prop.value, lower=prop.minimum, upper=prop.maximum, step_incr=step_incr, page_incr=0, page_size=0)
+        adj = Gtk.Adjustment(value=prop.value, lower=prop.minimum, upper=prop.maximum, step_incr=step_incr, page_incr=0, page_size=0)
 
-        container = gtk.HBox()
-        label = gtk.Label(prop.human_name)
-        spinner = gtk.SpinButton(adj, 0.1, num_digits)
+        container = Gtk.HBox()
+        label = Gtk.Label(prop.human_name)
+        spinner = Gtk.SpinButton.new(adj, 0.1, num_digits)
 
-        slider = gtk.HScale(adj)
+        slider = Gtk.HScale.new(adj)
         # showing the value uses space, its shown in the entry next to it anyway
         slider.set_draw_value(False)
         #slider.set_digits(num_digits)
@@ -306,10 +334,10 @@ class GtkGstController:
             adj.connect("value_changed", self.apply_changes, prop)
         else:
             container.set_sensitive(False)
-            gst_elt = prop.parent_element._gst_element
+            Gst_elt = prop.parent_element._Gst_element
             # FIXME: why doesn't it work ?
-            #gst_elt.connect('notify::%s' %prop.name, adj.set_value)
-            self.notify_property(gst_elt, prop.name, adj.set_value)
+            #Gst_elt.connect('notify::{0}'.format(prop.name), adj.set_value)
+            self.notify_property(Gst_elt, prop.name, adj.set_value)
 
         label.show()
         spinner.show()
@@ -331,7 +359,7 @@ class GtkGstController:
     ################################################
 
     def _create_check_btn(self, prop):
-        button = gtk.CheckButton(prop.human_name)
+        button = Gtk.CheckButton(prop.human_name)
         button.set_active(prop.value)
         if not prop.is_readonly:
             button.connect("toggled", self.apply_changes, prop)
@@ -341,7 +369,7 @@ class GtkGstController:
         return button
 
     def _create_enum_combobox(self, prop):
-        combobox = gtk.combo_box_new_text()
+        combobox = Gtk.ComboBoxText.new()
         for value in prop.values_list:
             combobox.append_text(value)
         combobox.set_active(prop.value)
@@ -350,11 +378,11 @@ class GtkGstController:
         return combobox
 
     def _create_entry(self, prop):
-        logger.debug("Creating entry for property %s" %prop.name)
-        container = gtk.HBox()
-        label = gtk.Label(prop.human_name)
+        logger.debug("Creating entry for property {0}".format(prop.name))
+        container = Gtk.HBox()
+        label = Gtk.Label(prop.human_name)
         label.show()
-        entry = gtk.Entry()
+        entry = Gtk.Entry()
         entry.set_text(prop.value)
 
         if not prop.is_readonly:
@@ -368,10 +396,10 @@ class GtkGstController:
         return container
 
     def _create_filebrowser(self, prop):
-        container = gtk.HBox()
+        container = Gtk.HBox()
         container.show()
 
-        label = gtk.Label(prop.name)
+        label = Gtk.Label(prop.name)
         label.show()
         container.add(label)
 
@@ -381,15 +409,15 @@ class GtkGstController:
         return container
 
     def _display_fileselector(self, widget, prop):
-        chooser = gtk.FileChooserDialog(title="Choose file",action=gtk.FILE_CHOOSER_ACTION_OPEN,\
-                      buttons=(gtk.STOCK_CANCEL,gtk.RESPONSE_CANCEL,gtk.STOCK_OPEN,gtk.RESPONSE_OK))
+        chooser = Gtk.FileChooserDialog(title="Choose file",action=Gtk.FILE_CHOOSER_ACTION_OPEN,\
+                      buttons=(Gtk.STOCK_CANCEL,Gtk.RESPONSE_CANCEL,Gtk.STOCK_OPEN,Gtk.RESPONSE_OK))
         chooser.show()
-        chooser.set_default_response(gtk.RESPONSE_OK)
+        chooser.set_default_response(Gtk.RESPONSE_OK)
         response = chooser.run()
-        if response == gtk.RESPONSE_OK:
+        if response == Gtk.RESPONSE_OK:
             filename = chooser.get_filename()
             widget.set_label(filename)
-            logger.info('%s selected' %filename)
+            logger.info('{0} selected'.format(filename))
             if prop.parent_element.name == 'filesrc':
                 logger.info('Warning, changing filename on running/dynamic pipelines is not supported, reparsing pipeline')
                 self.stop_pipeline()
@@ -397,12 +425,12 @@ class GtkGstController:
                 self._clean_controls()
                 self.pipeline_launcher.bus.connect('message::element', self.on_sync_message)
                 self._build_elements()
-                prop.parent_element._gst_element.set_property(prop.name, filename)
+                prop.parent_element._Gst_element.set_property(prop.name, filename)
                 self.pipeline_launcher.run()
             else:
                 self.apply_changes(chooser, prop)
 
-        elif response == gtk.RESPONSE_CANCEL:
+        elif response == Gtk.RESPONSE_CANCEL:
             logger.info('Closed, no file selected')
         chooser.destroy()
 
@@ -410,34 +438,34 @@ class GtkGstController:
         self.properties_container.add(widget)
 
     def add_element_widget(self, element):
-        logger.debug("Adding widgets for element %s" %element.name)
+        logger.debug("Adding widgets for element {0}".format(element.name))
         widget = self._create_element_widget(element)
         self.add_controller(widget)
 
     def _get_value_by_class(self, widget, prop):
-        if isinstance(widget, gtk.CheckButton):
+        if isinstance(widget, Gtk.CheckButton):
             value = widget.get_active()
-        elif isinstance(widget, gtk.Adjustment):
+        elif isinstance(widget, Gtk.Adjustment):
             value = widget.get_value()
             if prop.is_int:
                 value = int(value)
-        elif isinstance(widget, gtk.ComboBox):
+        elif isinstance(widget, Gtk.ComboBox):
             value = widget.get_active()
-        elif isinstance(widget, gtk.Entry):
+        elif isinstance(widget, Gtk.Entry):
             value = widget.get_text()
-        elif isinstance(widget, gtk.FileChooserDialog):
+        elif isinstance(widget, Gtk.FileChooserDialog):
             value = widget.get_filename()
         else:
-            logger.error('Cannot get value of widget of class %s for property %s' %(widget.__class__, prop.name))
+            logger.error('Cannot get value of widget of class {0} for property {1}'.format(widget.__class__, prop.name))
         return value
        
     def apply_changes(self, widget, prop):
         value = self._get_value_by_class(widget, prop)
-        logger.debug("Applying value %s to property '%s' of element %s" %(value, prop.name, prop.parent_element.name))
+        logger.debug("Applying value {0} to property '{1}' of element {2}".format(value, prop.name, prop.parent_element.name))
         # FIXME: check MUTABLE property 
         if prop.name == "bitrate" and prop.parent_element.name == "theoraenc":
             self.stop()
         prop.parent_element.set_property(prop.name, value)
         if prop.name == "bitrate" and prop.parent_element.name == "theoraenc":
             self.pipeline_launcher.run()
-        gobject.idle_add(prop.update_value)
+        GObject.idle_add(prop.update_value)

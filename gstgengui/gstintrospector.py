@@ -1,30 +1,49 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+# * This Program is free software; you can redistribute it and/or
+# * modify it under the terms of the GNU Lesser General Public
+# * License as published by the Free Software Foundation; either
+# * version 2.1 of the License, or (at your option) any later version.
+# *
+# * Libav is distributed in the hope that it will be useful,
+# * but WITHOUT ANY WARRANTY; without even the implied warranty of
+# * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# * Lesser General Public License for more details.
+# *
+# * You should have received a copy of the GNU Lesser General Public
+# * License along with Libav; if not, write to the Free Software
+# * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
 """
-gst-gengui: gstreamer introspector
+Gst-gengui: Gstreamer introspector
 
 Scans pipelines for named elements and associated properties
 When launched separately, prints all the found elements
 
 Copyright 2009, Florent Thiery, under the terms of LGPL
-"""
+Copyright 2013, Dirk Van Haerenborgh, under the terms of LGPL
 
-import gobject
-import gst
+"""
+__author__ = ("Florent Thiery <fthiery@gmail.com>", "Dirk Van Haerenborgh <vhdirk@gmail.com>")
+
 
 import logging
-logger = logging.getLogger('gst-gengui')
+logger = logging.getLogger('Gst-gengui')
+
+import gi
+gi.require_version('Gst', '1.0')
+from gi.repository import GLib, GObject, Gst, Gio, Gtk
 
 IGNORE_LIST = []
 
-NUMBER_GTYPES = (gobject.TYPE_INT64, gobject.TYPE_INT, gobject.TYPE_UINT, gobject.TYPE_UINT64, gobject.TYPE_DOUBLE, gobject.TYPE_FLOAT, gobject.TYPE_LONG, gobject.TYPE_ULONG)
+NUMBER_GTYPES = (GObject.TYPE_INT64, GObject.TYPE_INT, GObject.TYPE_UINT, GObject.TYPE_UINT64, GObject.TYPE_DOUBLE, GObject.TYPE_FLOAT, GObject.TYPE_LONG, GObject.TYPE_ULONG)
 
-INT_GTYPES = (gobject.TYPE_INT64, gobject.TYPE_INT, gobject.TYPE_ULONG, gobject.TYPE_UINT, gobject.TYPE_UINT64)
+INT_GTYPES = (GObject.TYPE_INT64, GObject.TYPE_INT, GObject.TYPE_ULONG, GObject.TYPE_UINT, GObject.TYPE_UINT64)
 
-STRING_GTYPES = (gobject.TYPE_CHAR, gobject.TYPE_GSTRING, gobject.TYPE_STRING, gobject.TYPE_UCHAR)
+STRING_GTYPES = (GObject.TYPE_CHAR, GObject.TYPE_GSTRING, GObject.TYPE_STRING, GObject.TYPE_UCHAR)
 
-class Property:
+class Property(object):
     def __init__(self, property, parent_element):
         self.parent_element = parent_element
         self.description = property.blurb
@@ -36,7 +55,7 @@ class Property:
         self.update_value()
 
     def update_value(self):
-        value = self.parent_element._gst_element.get_property(self.name)
+        value = self.parent_element._Gst_element.get_property(self.name)
         if value is None:
             if self.default_value is not None:
                 value = self.default_value
@@ -62,7 +81,7 @@ class NumberProperty(Property):
 class EnumProperty(Property):
     def __init__(self, property, parent_element):
         Property.__init__(self, property, parent_element)
-        self.value_type = gobject.TYPE_ENUM
+        self.value_type = GObject.TYPE_ENUM
         self.values_list = []
         if property.__gtype__.has_value_table:
             values = property.enum_class.__enum_values__
@@ -71,11 +90,11 @@ class EnumProperty(Property):
                 # FIXME: find more proper way to do it (check buzztard)
                 # Nb: l'index, value_name et value_nick peuvent tous deux etre utilisés pour set_property
 
-class Element:
-    def __init__(self, gst_element):
-        self._gst_element = gst_element
-        _properties_list = gobject.list_properties(self._gst_element)
-        self.name = self._gst_element.get_factory().get_name()
+class Element(object):
+    def __init__(self, Gst_element):
+        self._Gst_element = Gst_element
+        _properties_list = GObject.list_properties(self._Gst_element)
+        self.name = self._Gst_element.get_factory().get_name()
 
         self.number_properties = number_properties = []
         self.boolean_properties = boolean_properties = []
@@ -84,13 +103,13 @@ class Element:
 
         for property in _properties_list:
             if property.name in IGNORE_LIST:
-                logger.debug("Property %s is in ignore list, skipping" %property.name)
+                logger.debug("Property {0} is in ignore list, skipping".format(property.name))
 
             elif property.value_type in NUMBER_GTYPES:
                 number_property = NumberProperty(property, self)
                 number_properties.append(number_property)
 
-            elif property.value_type == gobject.TYPE_BOOLEAN:
+            elif property.value_type == GObject.TYPE_BOOLEAN:
                 boolean_property = BooleanProperty(property, self)
                 boolean_properties.append(boolean_property)
 
@@ -98,27 +117,30 @@ class Element:
                 string_property = StringProperty(property, self)
                 string_properties.append(string_property)
           
-            elif property.value_type.is_a(gobject.TYPE_ENUM):
+            elif property.value_type.is_a(GObject.TYPE_ENUM):
                 enum_property = EnumProperty(property, self)
                 enum_properties.append(enum_property)
 
             else:
-                logger.error("Property type %s has no associated known types, skipping" %property.value_type)
+                logger.error("Property type {0} has no associated known types, skipping".format(property.value_type))
 
     def set_property(self, property, value):
-        self._gst_element.set_property(property, value)
+        self._Gst_element.set_property(property, value)
 
-class PipelineIntrospector:
+class PipelineIntrospector(object):
     def __init__(self, pipeline):
         self.pipeline = pipeline
         self.gst_elements = []
         self.elements = []
-        self._get_gst_elements()
+        self._get_Gst_elements()
         self._introspect_elements()
 
-    def _get_gst_elements(self):
-        for elt in self.pipeline:
-            self.gst_elements.insert(0, elt)
+    def _get_Gst_elements(self):
+        gstit = self.pipeline.iterate_elements()
+        elt = gstit.next()
+        while(elt[0] == Gst.IteratorResult.OK):
+            self.gst_elements.insert(0, elt[1])
+            elt = gstit.next()
 
     def _introspect_elements(self):
         for gst_element in self.gst_elements:
@@ -126,10 +148,10 @@ class PipelineIntrospector:
             self.elements.append(element)
 
     def print_all(self):
-        print "Printing all of them"
+        print('Printing all of them')
         for element in self.elements:
-            print element
+            print(element)
             if True:
-                print "\nElement: %s" %element.name
+                print("\nElement: {0}".formmat(element.name))
                 for property in element.number_properties:
-                    print property.name
+                    print(property.name)

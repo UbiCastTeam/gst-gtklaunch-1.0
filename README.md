@@ -39,7 +39,10 @@ If no argument is given, it will launch the pipeline description found in the gs
 ## Installation
 
 Note: using the following as command from this directory instead of gst-gengui will let you use gst-gengui without doing the symlinks
+
+```bash
 PYTHONPATH=$PWD python gstgengui/gst-gengui.py
+```
 
 Install symlinks: execute setup.sh
 

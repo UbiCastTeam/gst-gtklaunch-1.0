@@ -40,6 +40,7 @@ If no argument is given, it will launch the pipeline description found in the gs
 
 Note: using the following as command from this directory instead of gst-gengui will let you use gst-gengui without doing the symlinks
 
+
 ```bash
 PYTHONPATH=$PWD python gstgengui/gst-gengui.py
 ```
@@ -49,6 +50,12 @@ Install symlinks:
 ```bash
 ./setup.sh
 ```
+
+To use the graphical tree viewer, xdot is needed:
+```bash
+sudo pip install git+ssh://git@github.com/vhdirk/xdot.py.git
+```
+
 
 ## Options
 

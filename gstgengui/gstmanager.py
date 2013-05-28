@@ -16,7 +16,7 @@
 # * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 """
-Gstmanager: convenience fonctions for Gstreamer pipeline manipulation 
+Gstmanager: convenience fonctions for Gstreamer pipeline manipulation
 
 Copyright 2009, Florent Thiery, under the terms of LGPL
 Copyright 2013, Dirk Van Haerenborgh, under the terms of LGPL
@@ -25,12 +25,13 @@ Copyright 2013, Dirk Van Haerenborgh, under the terms of LGPL
 __author__ = ("Florent Thiery <fthiery@gmail.com>", "Dirk Van Haerenborgh <vhdirk@gmail.com>")
 
 
-import logging, os
+import logging
+import os
 logger = logging.getLogger('Gstmanager')
 
 import gi
 gi.require_version('Gst', '1.0')
-from gi.repository import GLib, GObject, Gst, Gio, Gtk
+from gi.repository import GObject, Gst, Gtk
 
 pipeline_desc = "videotestsrc ! xvimagesink"
 try:
@@ -38,12 +39,13 @@ try:
 except Exception:
     import event as easyevent
 
+
 class PipelineManager(easyevent.User):
     def __init__(self, pipeline_string=None, name=None):
         easyevent.User.__init__(self)
         self.send_debug = False
         self.name = name
-        if pipeline_string is not None: 
+        if pipeline_string is not None:
             self.parse_description(pipeline_string)
         else:
             if name is not None:
@@ -66,7 +68,7 @@ class PipelineManager(easyevent.User):
 
     def is_running(self):
         if hasattr(self, "pipeline"):
-            if self.get_state() == "Gst_STATE_PLAYING":
+            if self.get_state() == Gst.State.PLAYING:
                 logger.debug("Pipeline is up and running")
                 return True
             else:
@@ -101,7 +103,7 @@ class PipelineManager(easyevent.User):
         logger.info("Starting pipeline {0}".format(self.pipeline.get_name()))
         self.launch_event("sos", self.pipeline)
         self.pipeline.set_state(Gst.State.PLAYING)
-        # Returning false if it was called by a gobject.timeout 
+        # Returning false if it was called by a gobject.timeout
         return False
 
     def play(self, *args):
@@ -147,8 +149,8 @@ class PipelineManager(easyevent.User):
             return False
 
     def seek_seconds(self, widget, getter):
-        logger.info( "Trying to seek to {0}".format(getter()))
-        self.pipeline.seek_simple(Gst.Format.TIME, Gst.SeekFlags.FLUSH, getter()*1000000000)
+        logger.info("Trying to seek to {0}".format(getter()))
+        self.pipeline.seek_simple(Gst.Format.TIME, Gst.SeekFlags.FLUSH, getter() * 1000000000)
 
     def send_eos(self, *args):
         logger.info("Sending EOS")
@@ -159,7 +161,7 @@ class PipelineManager(easyevent.User):
         logger.info("Setting caps {0} on capsfilter named {1}".format(caps, caps_name))
         capsfilter = self.pipeline.get_by_name(caps_name)
         GstCaps = Gst.caps_from_string(caps)
-        capsfilter.set_property("caps",GstCaps)
+        capsfilter.set_property("caps", GstCaps)
 
     def set_property_on_element(self, element_name="whatever", property_name="property", value="value"):
         logger.debug("Setting value {0} to property {1} of element {2}" .format(value, property_name, element_name))
@@ -179,7 +181,7 @@ class PipelineManager(easyevent.User):
         out_pad.set_setcaps_function(self.send_caps)
 
     def activate_polling_of_property_on_element(self, element_name="whatever", property="property", interval_ms=1000):
-        gobject.timeout_add(interval_ms, self.poll_property, element_name, property)
+        GObject.timeout_add(interval_ms, self.poll_property, element_name, property)
         self.do_poll = True
 
     def deactivate_pollings(self):
@@ -208,22 +210,25 @@ class PipelineManager(easyevent.User):
         elif t == Gst.MessageType.ELEMENT:
             name = message.get_structure().get_name()
             res = message.get_structure()
-            source = message.src.get_name() #(str(message.src)).split(":")[2].split(" ")[0]
+            source = message.src.get_name()  # (str(message.src)).split(":")[2].split(" ")[0]
             self.launch_event(name, {"source": source, "data": res})
             self.launch_event('gst_element_message', {"source": source, "name": name, "data": res})
         else:
             if self.send_debug:
-                logger.debug( "got unhandled message type {0}, structure {1}".format(t, message))
+                logger.debug("got unhandled message type {0}, structure {1}".format(t, message))
 
     def dump_dot_file(self, basename='pipeline'):
+        print ( os.environ.get('GST_DEBUG_DUMP_DOT_DIR', None))
         directory = os.environ.get('GST_DEBUG_DUMP_DOT_DIR', os.getcwd())
+        print (directory)
         if directory:
             dotfile = os.path.join(directory, '{0}.dot'.format(basename))
             if os.path.isfile(dotfile):
                 logger.debug('Removing existing dotfile {0}'.format(dotfile))
                 os.remove(dotfile)
             logger.debug('Dumping graph to {0}'.format(dotfile))
-            Gst.debug_bin_to_dot_file (self.pipeline, Gst.DebugGraphDetails.ALL, basename)
+            print(dotfile)
+            Gst.debug_bin_to_dot_file(self.pipeline, Gst.DebugGraphDetails.ALL, basename)
             return dotfile
         else:
             logger.error('You need to define the Gst_DEBUG_DUMP_DOT_DIR env var to dump a .dot graph of the running pipeline')
@@ -247,7 +252,8 @@ class PipelineManager(easyevent.User):
 
 if __name__ == '__main__':
 
-    import logging, sys
+    import logging
+    import sys
 
     logging.basicConfig(
         level=getattr(logging, "DEBUG"),

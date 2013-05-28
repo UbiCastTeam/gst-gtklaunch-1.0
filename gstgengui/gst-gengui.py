@@ -27,18 +27,26 @@ __author__ = ("Florent Thiery <fthiery@gmail.com>", "Dirk Van Haerenborgh <vhdir
 
 
 import os
-os.putenv('GST_DEBUG_DUMP_DOT_DIR', '/tmp')
-os.putenv('GI_TYPELIB_PATH', "/usr/local/lib/girepository-1.0:/usr/lib/girepository-1.0")
+os.environ['GI_TYPELIB_PATH'] = "/usr/local/lib/girepository-1.0:/usr/lib/girepository-1.0"
+
 
 import logging
 logger = logging.getLogger('gst-gengui')
 
 import gi
 gi.require_version('Gst', '1.0')
-from gi.repository import GLib, GObject, Gst, Gio, Gtk
+from gi.repository import GObject, Gst, Gtk
 
-GObject.threads_init()
-Gst.init(None)
+
+
+def init():
+    dotdir = os.environ.get('GST_DEBUG_DUMP_DOT_DIR', None)
+    if not dotdir:
+        os.environ['GST_DEBUG_DUMP_DOT_DIR'] = os.getcwd()
+    GObject.threads_init()
+    Gst.init(None)
+    Gst.debug_set_active(True)
+
 
 if __name__ == '__main__':
 
@@ -62,7 +70,7 @@ if __name__ == '__main__':
         format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
         stream=sys.stderr
     )
-    
+
 
     def parse_args(pipeline):
         desc = ""
@@ -70,13 +78,15 @@ if __name__ == '__main__':
             desc += " "+arg
         logger.debug("gst-launch pipeline is: {0}".format(desc))
         #print("gst-launch pipeline is: {0}".format(desc))
-        return desc 
- 
+        return desc
+
     if not args.pipeline:
         logger.error("Empty pipeline unauthorized, quitting")
         sys.exit(1)
     else:
         string = parse_args(args.pipeline)
+        
+    init()
 
     # We import it later on otherwise it messes up optparse
     from gstmanager import PipelineManager

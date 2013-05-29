@@ -40,9 +40,11 @@ from gi.repository import GObject, Gst, Gtk
 
 
 def init():
-    dotdir = os.environ.get('GST_DEBUG_DUMP_DOT_DIR', None)
-    if not dotdir:
+    try:
+        assert os.environ.get('GST_DEBUG_DUMP_DOT_DIR', None)
+    except (NameError, AssertionError):
         os.environ['GST_DEBUG_DUMP_DOT_DIR'] = os.getcwd()
+        
     GObject.threads_init()
     Gst.init(None)
     Gst.debug_set_active(True)

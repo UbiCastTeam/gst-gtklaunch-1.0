@@ -116,7 +116,6 @@ class GtkGstController(object):
         self.window.show_all()
 
     def on_sync_message(self, bus, message):
-        print(message.get_structure().get_name())
         if message.get_structure() is None:
             return
         if message.get_structure().get_name() == 'prepare-window-handle':

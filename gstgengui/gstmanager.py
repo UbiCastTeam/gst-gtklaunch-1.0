@@ -218,16 +218,13 @@ class PipelineManager(easyevent.User):
                 logger.debug("got unhandled message type {0}, structure {1}".format(t, message))
 
     def dump_dot_file(self, basename='pipeline'):
-        print ( os.environ.get('GST_DEBUG_DUMP_DOT_DIR', None))
         directory = os.environ.get('GST_DEBUG_DUMP_DOT_DIR', os.getcwd())
-        print (directory)
         if directory:
             dotfile = os.path.join(directory, '{0}.dot'.format(basename))
             if os.path.isfile(dotfile):
                 logger.debug('Removing existing dotfile {0}'.format(dotfile))
                 os.remove(dotfile)
             logger.debug('Dumping graph to {0}'.format(dotfile))
-            print(dotfile)
             Gst.debug_bin_to_dot_file(self.pipeline, Gst.DebugGraphDetails.ALL, basename)
             return dotfile
         else:

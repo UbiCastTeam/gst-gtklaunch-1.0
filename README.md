@@ -38,22 +38,10 @@ If no argument is given, it will launch the pipeline description found in the gs
 
 ## Installation
 
-Note: using the following as command from this directory instead of gst-gengui will let you use gst-gengui without doing the symlinks
-
-
-```bash
-PYTHONPATH=$PWD python gstgengui/gst-gengui.py
-```
-
-Install symlinks: 
+Install this package as a python egg: 
 
 ```bash
-./setup.sh
-```
-
-To use the graphical tree viewer, xdot is needed:
-```bash
-sudo pip install http://github.com/vhdirk/xdot.py/tarball/master
+./setup.py install
 ```
 
 

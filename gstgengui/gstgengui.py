@@ -50,7 +50,7 @@ def init():
     Gst.debug_set_active(True)
 
 
-if __name__ == '__main__':
+def main():
 
     import argparse
     parser = argparse.ArgumentParser(description='utility for testing and controlling live GStreamer pipelines and elements',  formatter_class=argparse.ArgumentDefaultsHelpFormatter, conflict_handler='resolve')
@@ -98,3 +98,7 @@ if __name__ == '__main__':
     controller = GtkGstController(pipeline_launcher, args.show_messages)
 
     controller.gtk_main()
+    
+if __name__ == '__main__':
+    main()
+    

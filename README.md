@@ -53,7 +53,7 @@ Install symlinks:
 
 To use the graphical tree viewer, xdot is needed:
 ```bash
-sudo pip install git+ssh://git@github.com/vhdirk/xdot.py.git
+sudo pip install http://github.com/vhdirk/xdot.py/tarball/master
 ```
 
 

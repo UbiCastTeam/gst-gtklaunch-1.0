@@ -23,20 +23,22 @@ Copyright 2013, Dirk Van Haerenborgh, under the terms of LGPL
 
 """
 __author__ = ("Florent Thiery <fthiery@gmail.com>", "Dirk Van Haerenborgh <vhdirk@gmail.com>")
-
+__package__= 'gstgengui'
 
 
 import os
 os.environ['GI_TYPELIB_PATH'] = "/usr/local/lib/girepository-1.0:/usr/lib/girepository-1.0"
 
-
+import sys
 import logging
-logger = logging.getLogger('gst-gengui')
+logger = logging.getLogger('gstgengui')
 
 import gi
 gi.require_version('Gst', '1.0')
 from gi.repository import GObject, Gst, Gtk
 
+from .gstmanager import PipelineManager
+from .gtk_controller import GtkGstController
 
 
 def init():
@@ -50,10 +52,19 @@ def init():
     Gst.debug_set_active(True)
 
 
+def parse_args(pipeline):
+    desc = ""
+    for arg in pipeline:
+        desc += " "+arg
+    logger.debug("gst-launch pipeline is: {0}".format(desc))
+    #print("gst-launch pipeline is: {0}".format(desc))
+    return desc
+
+
 def main():
 
     import argparse
-    parser = argparse.ArgumentParser(description='utility for testing and controlling live GStreamer pipelines and elements',  formatter_class=argparse.ArgumentDefaultsHelpFormatter, conflict_handler='resolve')
+    parser = argparse.ArgumentParser(prog="gstgengui", description='utility for testing and controlling live GStreamer pipelines and elements',  formatter_class=argparse.ArgumentDefaultsHelpFormatter, conflict_handler='resolve')
     parser.add_argument('-v', "--verbose", action="store_true", dest="verbose", default=False, help="Use DEBUG verbosity level")
     parser.add_argument('-m', "--messages", action="store_true", dest="show_messages", default=False, help="Show gst.Element messages window before setting the pipeline to PLAYING")
     parser.add_argument('pipeline', nargs='+', help='Pipeline description')
@@ -65,7 +76,6 @@ def main():
     else:
         verbosity = 'INFO'
 
-    import logging, sys
 
     logging.basicConfig(
         level=getattr(logging, verbosity),
@@ -73,14 +83,6 @@ def main():
         stream=sys.stderr
     )
 
-
-    def parse_args(pipeline):
-        desc = ""
-        for arg in pipeline:
-            desc += " "+arg
-        logger.debug("gst-launch pipeline is: {0}".format(desc))
-        #print("gst-launch pipeline is: {0}".format(desc))
-        return desc
 
     if not args.pipeline:
         logger.error("Empty pipeline unauthorized, quitting")
@@ -90,11 +92,8 @@ def main():
         
     init()
 
-    # We import it later on otherwise it messes up optparse
-    from gstmanager import PipelineManager
     pipeline_launcher = PipelineManager(string)
 
-    from gtk_controller import GtkGstController
     controller = GtkGstController(pipeline_launcher, args.show_messages)
 
     controller.gtk_main()

@@ -25,7 +25,6 @@ Copyright 2013, Dirk Van Haerenborgh, under the terms of LGPL
 __author__ = ("Florent Thiery <fthiery@gmail.com>", "Dirk Van Haerenborgh <vhdirk@gmail.com>")
 
 
-
 import gi
 gi.require_version('Gst', '1.0')
 from gi.repository import GLib, GObject, Gst, Gio, Gtk
@@ -34,7 +33,7 @@ from gi.repository import Gdk, GdkX11, GstVideo
 import logging
 logger = logging.getLogger('gtk-gstgengui')
 
-from gstintrospector import PipelineIntrospector
+from .gstintrospector import PipelineIntrospector
 
 class VideoWidget(Gtk.DrawingArea):
     def __init__(self):

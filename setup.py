@@ -14,12 +14,13 @@ setup(
     long_description=read('README.md'),
     license="LGPL",
     packages = find_packages(),
+
     
     entry_points=dict(gui_scripts=['gstgengui=gstgengui.gstgengui:main']),
     
     dependency_links = [
         "http://github.com/vhdirk/xdot.py/tarball/master"
-    ],
+    ],          
 
     # This is true, but pointless, because easy_install PyGTK chokes and dies
     #install_requires=['', 'pycairo'],

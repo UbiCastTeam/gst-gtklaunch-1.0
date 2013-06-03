@@ -37,7 +37,7 @@ pipeline_desc = "videotestsrc ! xvimagesink"
 try:
     import easyevent
 except Exception:
-    import event as easyevent
+    from . import event as easyevent
 
 
 class PipelineManager(easyevent.User):

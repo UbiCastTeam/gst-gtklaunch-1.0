@@ -72,7 +72,7 @@ class MessagesDisplayer(easyevent.User, Gtk.Window):
         sw = Gtk.ScrolledWindow()
         sw.set_shadow_type(Gtk.ShadowType.ETCHED_IN)
         sw.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
-        vbox.pack_start(sw, False, False, 0)
+        vbox.pack_start(sw, True, True, 0)
 
         # create tree model
         self.store = model = self.__create_model()

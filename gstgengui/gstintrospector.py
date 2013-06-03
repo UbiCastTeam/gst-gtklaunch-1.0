@@ -27,7 +27,6 @@ Copyright 2013, Dirk Van Haerenborgh, under the terms of LGPL
 """
 __author__ = ("Florent Thiery <fthiery@gmail.com>", "Dirk Van Haerenborgh <vhdirk@gmail.com>")
 
-
 import logging
 logger = logging.getLogger('Gst-gengui')
 

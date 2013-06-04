@@ -61,13 +61,16 @@ def parse_args(pipeline):
     return desc
 
 
+
+
 def main():
 
     import argparse
     parser = argparse.ArgumentParser(prog="gstgengui", description='utility for testing and controlling live GStreamer pipelines and elements',  formatter_class=argparse.ArgumentDefaultsHelpFormatter, conflict_handler='resolve')
     parser.add_argument('-v', "--verbose", action="store_true", dest="verbose", default=False, help="Use DEBUG verbosity level")
     parser.add_argument('-m', "--messages", action="store_true", dest="show_messages", default=False, help="Show gst.Element messages window before setting the pipeline to PLAYING")
-    parser.add_argument('pipeline', nargs='+', help='Pipeline description')
+    parser.add_argument('-c', "--config", dest="config", help="Loads the given configuration file")
+    parser.add_argument('pipeline', nargs='*', help='Pipeline description')
 
     args = parser.parse_args()
 
@@ -82,19 +85,33 @@ def main():
         format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
         stream=sys.stderr
     )
+    
+    #as defined in config.py
+    configuration = {
+        'name': None,
+        'pipeline_desc': None,
+        'ignore_list': ['parent'],
+        'display_preview': True
+    }
+
+    if args.config:
+        with open(args.config) as config:
+            exec(config.read(), {}, configuration)
+        
+
+    if args.pipeline:
+        configuration['pipeline_desc'] = parse_args(args.pipeline)
 
 
-    if not args.pipeline:
+    if not configuration['pipeline_desc']:
         logger.error("Empty pipeline unauthorized, quitting")
         sys.exit(1)
-    else:
-        string = parse_args(args.pipeline)
         
     init()
 
-    pipeline_launcher = PipelineManager(string)
+    pipeline_launcher = PipelineManager(configuration['pipeline_desc'], configuration['name'])
 
-    controller = GtkGstController(pipeline_launcher, args.show_messages)
+    controller = GtkGstController(pipeline_launcher, args.show_messages, configuration['display_preview'], configuration['ignore_list'])
 
     controller.gtk_main()
     

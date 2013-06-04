@@ -50,10 +50,12 @@ class VideoWidget(Gtk.DrawingArea):
             return True
 
     def set_sink(self, sink):
-        xid = self.get_property('window').get_xid()
-        assert xid
-        self.imagesink = sink
-        self.imagesink.set_window_handle(xid)
+        win = self.get_property('window')
+        if win:
+            xid = win.get_xid()
+            assert xid
+            self.imagesink = sink
+            self.imagesink.set_window_handle(xid)
 
 class GtkGstController(object):
 
@@ -66,10 +68,12 @@ class GtkGstController(object):
         logger.info("destroy signal occurred")
         Gtk.main_quit()
 
-    def __init__(self, pipeline_launcher, show_messages=False, display_preview=True):
+    def __init__(self, pipeline_launcher, show_messages=False, display_preview=True, ignore_list=[]):
         self.prop_watchlist = list()
 
         self.pipeline_launcher = pipeline_launcher
+        self.ignore_list = ignore_list
+        
         if show_messages:
             self._on_show_messages()
 
@@ -80,7 +84,7 @@ class GtkGstController(object):
 
         self.window = Gtk.Window()#Gtk.WINDOW_TOPLEVEL)
         self.window.set_title(pipeline_launcher.pipeline.get_name())
-        self.window.set_size_request(800, 600)
+        self.window.set_size_request(800, 768)
         # Sets the border width of the window.
         self.window.set_border_width(6)
 
@@ -106,7 +110,7 @@ class GtkGstController(object):
 
         if display_preview:
             self.resizable_container.pack1(self.preview_container, resize=True, shrink=False)
-        self.resizable_container.pack2(self.scrolled_window, resize=False, shrink=False)
+        self.resizable_container.pack2(self.scrolled_window, resize=True, shrink=False)
 
         self.main_container.pack_start(self.resizable_container, True, True, 0)
         self.main_container.pack_end(pipeline_controls, False, False, 0)
@@ -185,7 +189,7 @@ class GtkGstController(object):
         self._clean_previews()
 
     def _build_elements(self):
-        introspector = PipelineIntrospector(self.pipeline_launcher.pipeline)
+        introspector = PipelineIntrospector(self.pipeline_launcher.pipeline, self.ignore_list)
         for element in introspector.elements:
             self.add_element_widget(element)
 

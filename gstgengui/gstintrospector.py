@@ -90,7 +90,7 @@ class EnumProperty(Property):
                 # Nb: l'index, value_name et value_nick peuvent tous deux etre utilisés pour set_property
 
 class Element(object):
-    def __init__(self, Gst_element):
+    def __init__(self, Gst_element, ignore_list):
         self._Gst_element = Gst_element
         _properties_list = GObject.list_properties(self._Gst_element)
         self.name = self._Gst_element.get_factory().get_name()
@@ -101,7 +101,7 @@ class Element(object):
         self.enum_properties = enum_properties = []
 
         for property in _properties_list:
-            if property.name in IGNORE_LIST:
+            if property.name in ignore_list:
                 logger.debug("Property {0} is in ignore list, skipping".format(property.name))
 
             elif property.value_type in NUMBER_GTYPES:
@@ -121,14 +121,15 @@ class Element(object):
                 enum_properties.append(enum_property)
 
             else:
-                logger.error("Property type {0} has no associated known types, skipping".format(property.value_type))
+                logger.error("Property '{0}' with type {1} has no associated known types, skipping".format(property.name, property.value_type))
 
     def set_property(self, property, value):
         self._Gst_element.set_property(property, value)
 
 class PipelineIntrospector(object):
-    def __init__(self, pipeline):
+    def __init__(self, pipeline, ignore_list):
         self.pipeline = pipeline
+        self.ignore_list = ignore_list
         self.gst_elements = []
         self.elements = []
         self._get_Gst_elements()
@@ -143,7 +144,7 @@ class PipelineIntrospector(object):
 
     def _introspect_elements(self):
         for gst_element in self.gst_elements:
-            element = Element(gst_element)
+            element = Element(gst_element, self.ignore_list)
             self.elements.append(element)
 
     def print_all(self):

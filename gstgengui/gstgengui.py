@@ -50,6 +50,8 @@ def init():
     GObject.threads_init()
     Gst.init(None)
     Gst.debug_set_active(True)
+    Gst.debug_set_colored(True)
+    Gst.debug_set_default_threshold(Gst.DebugLevel.WARNING)
 
 
 def parse_args(pipeline):

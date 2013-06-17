@@ -74,11 +74,14 @@ class GtkGstController(object):
         self.pipeline_launcher = pipeline_launcher
         self.ignore_list = ignore_list
         
+        self.prop_list = list()
+        
         if show_messages:
             self._on_show_messages()
 
         self.pipeline_launcher.bus.enable_sync_message_emission()
         self.pipeline_launcher.bus.connect('sync-message::element', self.on_sync_message)
+        self.pipeline_launcher.bus.connect('message::state-changed', self.on_state_change_message)
 
         self.poll_id = None
 
@@ -124,6 +127,11 @@ class GtkGstController(object):
         if message.get_structure().get_name() == 'prepare-window-handle':
             logger.debug("prepare-window-handle, {0}".format(message))
             self._create_videowidget(message)
+            
+    def on_state_change_message(self, bus, message):
+        for prop, widget in self.prop_list:
+            GObject.idle_add(self.update_widget_value, widget, prop)
+        
 
     def _create_videowidget(self, message):
         videowidget = None
@@ -171,6 +179,7 @@ class GtkGstController(object):
     def run_pipeline(self, *args):
         self.pipeline_launcher.run()
         self._start_pollings()
+        #TODO: update controls
 
     def gtk_main(self):
         self.main()
@@ -244,7 +253,8 @@ class GtkGstController(object):
         prop = args[0]
         adj = args[1]
         prop.parent_element.set_property(prop.name, prop.default_value)
-        adj.set_value(prop.default_value)
+        prop.update_value()
+        adj.set_value(prop.value)
 
     def _refresh(self, *args):
         self._clean_controls()
@@ -312,6 +322,7 @@ class GtkGstController(object):
             step_incr=0.1
             num_digits=1
 
+        print (prop)
         adj = Gtk.Adjustment(value=prop.value, lower=prop.minimum, upper=prop.maximum, step_incr=step_incr, page_incr=0, page_size=0)
 
         container = Gtk.HBox()
@@ -334,6 +345,7 @@ class GtkGstController(object):
 
         if not prop.is_readonly:
             adj.connect("value_changed", self.apply_changes, prop)
+            
         else:
             container.set_sensitive(False)
             Gst_elt = prop.parent_element._Gst_element
@@ -341,6 +353,7 @@ class GtkGstController(object):
             #Gst_elt.connect('notify::{0}'.format(prop.name), adj.set_value)
             self.notify_property(Gst_elt, prop.name, adj.set_value)
 
+        self.prop_list.append((prop, adj))
         label.show()
         spinner.show()
         container.show()
@@ -358,6 +371,9 @@ class GtkGstController(object):
 
     def notify_property(self, element, prop_name, callback):
         self.prop_watchlist.append({'elt': element, 'prop_name': prop_name, 'cb': callback, 'last_seen': element.get_property(prop_name)})
+        
+    
+        
     ################################################
 
     def _create_check_btn(self, prop):
@@ -368,6 +384,7 @@ class GtkGstController(object):
         else:
             button.set_sensitive(False)
         button.show()
+        self.prop_list.append((prop, button))
         return button
 
     def _create_enum_combobox(self, prop):
@@ -377,6 +394,7 @@ class GtkGstController(object):
         combobox.set_active(prop.value)
         combobox.connect("changed", self.apply_changes, prop)
         combobox.show()
+        self.prop_list.append((prop, combobox))
         return combobox
 
     def _create_entry(self, prop):
@@ -395,6 +413,7 @@ class GtkGstController(object):
         container.pack_start(label, False, True, 20)
         container.pack_end(entry, False, True, 20)
         container.show()
+        self.prop_list.append((prop, entry))
         return container
 
     def _create_filebrowser(self, prop):
@@ -407,6 +426,7 @@ class GtkGstController(object):
 
         open_btn = self._create_button(label="Choose file", callback=self._display_fileselector, callback_args=prop, container=container)
         open_btn.show()
+        self.prop_list.append((prop, open_btn))
 
         return container
 
@@ -460,6 +480,24 @@ class GtkGstController(object):
         else:
             logger.error('Cannot get value of widget of class {0} for property {1}'.format(widget.__class__, prop.name))
         return value
+        
+    def _set_value_by_class(self, widget, prop):
+        if isinstance(widget, Gtk.CheckButton):
+            widget.set_active(prop.value)
+        elif isinstance(widget, Gtk.Adjustment):
+            widget.set_value(prop.value)
+        elif isinstance(widget, Gtk.ComboBox):
+            widget.set_active(prop.value)
+        elif isinstance(widget, Gtk.Entry):
+            widget.set_text(prop.value)
+        elif isinstance(widget, Gtk.FileChooserDialog):
+            widget.set_filename(prop.value)
+        else:
+            logger.error('Cannot set value of widget of class {0} for property {1}'.format(widget.__class__, prop.name))        
+       
+    def update_widget_value(self, widget, prop):
+        prop.update_value()
+        self._set_value_by_class(widget, prop)
        
     def apply_changes(self, widget, prop):
         value = self._get_value_by_class(widget, prop)
@@ -470,4 +508,6 @@ class GtkGstController(object):
         prop.parent_element.set_property(prop.name, value)
         if prop.name == "bitrate" and prop.parent_element.name == "theoraenc":
             self.pipeline_launcher.run()
-        GObject.idle_add(prop.update_value)
+        
+        GObject.idle_add(self.update_widget_value, widget, prop)
+        

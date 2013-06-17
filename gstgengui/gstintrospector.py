@@ -36,11 +36,11 @@ from gi.repository import GLib, GObject, Gst, Gio, Gtk
 
 IGNORE_LIST = []
 
-NUMBER_GTYPES = (GObject.TYPE_INT64, GObject.TYPE_INT, GObject.TYPE_UINT, GObject.TYPE_UINT64, GObject.TYPE_DOUBLE, GObject.TYPE_FLOAT, GObject.TYPE_LONG, GObject.TYPE_ULONG)
+NUMBER_GTYPES = (GObject.TYPE_INT, GObject.TYPE_UINT, GObject.TYPE_LONG, GObject.TYPE_ULONG, GObject.TYPE_INT64, GObject.TYPE_UINT64, GObject.TYPE_FLOAT, GObject.TYPE_DOUBLE)
 
-INT_GTYPES = (GObject.TYPE_INT64, GObject.TYPE_INT, GObject.TYPE_ULONG, GObject.TYPE_UINT, GObject.TYPE_UINT64)
+INT_GTYPES = (GObject.TYPE_INT, GObject.TYPE_UINT, GObject.TYPE_LONG, GObject.TYPE_ULONG, GObject.TYPE_INT64, GObject.TYPE_UINT64)
 
-STRING_GTYPES = (GObject.TYPE_CHAR, GObject.TYPE_GSTRING, GObject.TYPE_STRING, GObject.TYPE_UCHAR)
+STRING_GTYPES = (GObject.TYPE_CHAR, GObject.TYPE_UCHAR, GObject.TYPE_UNICHAR, GObject.TYPE_GSTRING, GObject.TYPE_STRING)
 
 class Property(object):
     def __init__(self, property, parent_element):
@@ -75,6 +75,8 @@ class NumberProperty(Property):
         Property.__init__(self, property, parent_element)
         self.minimum = property.minimum
         self.maximum = property.maximum
+        print (self.name, self.minimum, self.maximum)
+        
         self.is_int = self.value_type in INT_GTYPES
 
 class EnumProperty(Property):

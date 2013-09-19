@@ -218,7 +218,7 @@ class GtkGstController(object):
         return True
 
     def _on_show_messages(self, *args):
-        from messages import MessagesDisplayer
+        from .messages import MessagesDisplayer
         test  = MessagesDisplayer(pipelinemanager_instance=self.pipeline_launcher)
 
     def _on_show_tree(self, *args):

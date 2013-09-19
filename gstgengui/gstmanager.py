@@ -24,9 +24,10 @@ Copyright 2013, Dirk Van Haerenborgh, under the terms of LGPL
 """
 __author__ = ("Florent Thiery <fthiery@gmail.com>", "Dirk Van Haerenborgh <vhdirk@gmail.com>")
 
-
-import logging
 import os
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger('Gstmanager')
 
 import gi
@@ -43,7 +44,7 @@ except Exception:
 class PipelineManager(easyevent.User):
     def __init__(self, pipeline_string=None, name=None):
         easyevent.User.__init__(self)
-        self.send_debug = False
+        self.send_debug = True
         self.name = name
         if pipeline_string is not None:
             self.parse_description(pipeline_string)

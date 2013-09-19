@@ -27,13 +27,14 @@ Copyright 2013, Dirk Van Haerenborgh, under the terms of LGPL
 __author__ = ("Florent Thiery <fthiery@gmail.com>", "Dirk Van Haerenborgh <vhdirk@gmail.com>")
 
 
-
-from gi.repository import GLib, GObject, Gst, Gio, Gtk
+import gi
+gi.require_version('Gst', '1.0')
+from gi.repository import GObject, Gst, Gtk
 
 try:
     import easyevent
 except Exception:
-    import event as easyevent
+    from . import event as easyevent
 
 (
     COLUMN_SOURCE,

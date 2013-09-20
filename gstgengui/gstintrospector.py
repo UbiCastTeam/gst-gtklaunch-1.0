@@ -135,17 +135,14 @@ class Element(object):
         self._Gst_element.set_property(property, value)
         
         
-    def _child_added(self, parent, child, name, callback):
+    def _child_changed(self, parent, child, name, callback):
         callback(Element(child), self.name)
-    
-    def _child_removed(self, parent, child, name):
-        pass
         
     def connect_child_added(self, callback):
-        self._Gst_element.connect("child-added", self._child_added, callback)
+        self._Gst_element.connect("child-added", self._child_changed, callback)
         
     def connect_child_removed(self, callback):
-        self._Gst_element.connect("child-removed", self._child_added)
+        self._Gst_element.connect("child-removed", self._child_changed, callback)
 
 class PipelineIntrospector(object):
     def __init__(self, pipeline, ignore_list):

@@ -202,8 +202,8 @@ class GtkGstController(object):
         for element in introspector.elements:
             self.add_element_widget(element)
             if element.implements_childproxy:
-                logger.debug("Connecting to child-added signal")
                 element.connect_child_added(self.add_element_widget)
+                element.connect_child_removed(self.remove_element_widget)
 
     def _start_pollings(self):
         if not self.poll_id:
@@ -462,9 +462,9 @@ class GtkGstController(object):
         if parent_name:
             children = self.properties_container.get_children()
             for child in children:
-                if child.get_name() == parent_name:
-                    child.add(widget)
-    
+                print (child,  child.get_name(), child.get_label(), parent_name )
+                if child.get_label() == parent_name:
+                    child.get_child().add(widget)
         else:
             self.properties_container.add(widget)
 
@@ -472,6 +472,23 @@ class GtkGstController(object):
         logger.debug("Adding widgets for element {0}".format(element.name))
         widget = self._create_element_widget(element)
         self.add_controller(widget, parent_name)
+        
+    def remove_element_widget(self, element, parent_name=None):
+        logger.debug("Removing widgets for element {0}".format(element.name))
+        children = self.properties_container.get_children()
+        if parent_name:
+            for child in children:
+                if child.get_label() == parent_name:
+                    pchild = child.get_child()
+                    for cchild in pchild.get_children():
+                        if hasattr(cchild, 'get_label'):
+                            if cchild.get_label() == element.name:
+                                pchild.remove(cchild)
+        for child in children:
+            if child.get_name() == element.name:
+                children.remove(child)
+
+
 
     def _get_value_by_class(self, widget, prop):
         if isinstance(widget, Gtk.CheckButton):

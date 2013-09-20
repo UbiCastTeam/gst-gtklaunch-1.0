@@ -93,10 +93,15 @@ class Element(object):
     def __init__(self, Gst_element, ignore_list=IGNORE_LIST):
         self._Gst_element = Gst_element
         _properties_list = GObject.list_properties(self._Gst_element)
+        self.children = []
         
         #print( Gst.Object.get_properties(self._Gst_element))
         
         self.implements_childproxy = GObject.type_from_name("GstChildProxy") in GObject.type_interfaces(self._Gst_element)
+        
+        if (self.implements_childproxy):
+            for i in range(self._Gst_element.get_children_count()):
+                self.children.append(Element(self._Gst_element.get_child_by_index(i)))
         
         if hasattr(self._Gst_element, "get_factory"):
             self.name = self._Gst_element.get_factory().get_name()

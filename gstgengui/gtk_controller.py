@@ -202,6 +202,8 @@ class GtkGstController(object):
         for element in introspector.elements:
             self.add_element_widget(element)
             if element.implements_childproxy:
+                for elem in element.children:
+                    self.add_element_widget(elem, element.name)
                 element.connect_child_added(self.add_element_widget)
                 element.connect_child_removed(self.remove_element_widget)
 
@@ -462,7 +464,6 @@ class GtkGstController(object):
         if parent_name:
             children = self.properties_container.get_children()
             for child in children:
-                print (child,  child.get_name(), child.get_label(), parent_name )
                 if child.get_label() == parent_name:
                     child.get_child().add(widget)
         else:

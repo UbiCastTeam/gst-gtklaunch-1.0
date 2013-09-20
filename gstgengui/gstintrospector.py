@@ -74,9 +74,7 @@ class NumberProperty(Property):
     def __init__(self, property, parent_element):
         Property.__init__(self, property, parent_element)
         self.minimum = property.minimum
-        self.maximum = property.maximum
-        print (self.name, self.minimum, self.maximum)
-        
+        self.maximum = property.maximum       
         self.is_int = self.value_type in INT_GTYPES
 
 class EnumProperty(Property):
@@ -92,10 +90,18 @@ class EnumProperty(Property):
                 # Nb: l'index, value_name et value_nick peuvent tous deux etre utilisés pour set_property
 
 class Element(object):
-    def __init__(self, Gst_element, ignore_list):
+    def __init__(self, Gst_element, ignore_list=IGNORE_LIST):
         self._Gst_element = Gst_element
         _properties_list = GObject.list_properties(self._Gst_element)
-        self.name = self._Gst_element.get_factory().get_name()
+        
+        #print( Gst.Object.get_properties(self._Gst_element))
+        
+        self.implements_childproxy = GObject.type_from_name("GstChildProxy") in GObject.type_interfaces(self._Gst_element)
+        
+        if hasattr(self._Gst_element, "get_factory"):
+            self.name = self._Gst_element.get_factory().get_name()
+        else:
+            self.name = self._Gst_element.get_name()
 
         self.number_properties = number_properties = []
         self.boolean_properties = boolean_properties = []
@@ -127,6 +133,19 @@ class Element(object):
 
     def set_property(self, property, value):
         self._Gst_element.set_property(property, value)
+        
+        
+    def _child_added(self, parent, child, name, callback):
+        callback(Element(child), self.name)
+    
+    def _child_removed(self, parent, child, name):
+        pass
+        
+    def connect_child_added(self, callback):
+        self._Gst_element.connect("child-added", self._child_added, callback)
+        
+    def connect_child_removed(self, callback):
+        self._Gst_element.connect("child-removed", self._child_added)
 
 class PipelineIntrospector(object):
     def __init__(self, pipeline, ignore_list):

@@ -319,6 +319,23 @@ class GtkGstController(object):
         mcontainer.show()
         return mcontainer
 
+
+    # FIXME: notify:: should to this !
+    def _poll_properties_watchlist(self):
+        # polling is called by _do_checks
+        for prop in self.prop_watchlist:
+            value = prop['elt'].get_property(prop['prop_name'])
+            if value != prop['last_seen']:
+                prop['cb'](value)
+        return True
+
+    def notify_property(self, element, prop_name, callback):
+        self.prop_watchlist.append({'elt': element, 'prop_name': prop_name, 'cb': callback, 'last_seen': element.get_property(prop_name)})
+        
+    
+        
+    ################################################
+
     def _create_spinner(self, prop):
         if prop.is_int:
             step_incr=1
@@ -364,22 +381,6 @@ class GtkGstController(object):
 
         return container
 
-    # FIXME: notify:: should to this !
-    def _poll_properties_watchlist(self):
-        # polling is called by _do_checks
-        for prop in self.prop_watchlist:
-            value = prop['elt'].get_property(prop['prop_name'])
-            if value != prop['last_seen']:
-                prop['cb'](value)
-        return True
-
-    def notify_property(self, element, prop_name, callback):
-        self.prop_watchlist.append({'elt': element, 'prop_name': prop_name, 'cb': callback, 'last_seen': element.get_property(prop_name)})
-        
-    
-        
-    ################################################
-
     def _create_check_btn(self, prop):
         button = Gtk.CheckButton(prop.human_name)
         button.set_active(prop.value)
@@ -392,14 +393,20 @@ class GtkGstController(object):
         return button
 
     def _create_enum_combobox(self, prop):
+        container = Gtk.HBox()
+        label = Gtk.Label(prop.human_name)
+        label.show()
         combobox = Gtk.ComboBoxText.new()
         for value in prop.values_list:
             combobox.append_text(value)
         combobox.set_active(prop.value)
         combobox.connect("changed", self.apply_changes, prop)
         combobox.show()
+        container.pack_start(label, False, True, 20)
+        container.pack_end(combobox, True, True, 20)
+        container.show()
         self.prop_list.append((prop, combobox))
-        return combobox
+        return container
 
     def _create_entry(self, prop):
         logger.debug("Creating entry for property {0}".format(prop.name))
@@ -415,7 +422,7 @@ class GtkGstController(object):
             entry.set_sensitive(False)
         entry.show()
         container.pack_start(label, False, True, 20)
-        container.pack_end(entry, False, True, 20)
+        container.pack_end(entry, True, True, 20)
         container.show()
         self.prop_list.append((prop, entry))
         return container

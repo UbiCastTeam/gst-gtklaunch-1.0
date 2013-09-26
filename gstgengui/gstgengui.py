@@ -70,6 +70,7 @@ def main():
     parser.add_argument('-v', "--verbose", action="store_true", dest="verbose", default=False, help="Use DEBUG verbosity level")
     parser.add_argument('-m', "--messages", action="store_true", dest="show_messages", default=False, help="Show gst.Element messages window before setting the pipeline to PLAYING")
     parser.add_argument('-c', "--config", dest="config", help="Loads the given configuration file")
+    parser.add_argument('-p', "--preview", action="store_false", dest="display_preview", default=True, help="Disable inline preview")
     parser.add_argument('pipeline', nargs='*', help='Pipeline description')
 
     args = parser.parse_args()
@@ -91,12 +92,14 @@ def main():
         'name': None,
         'pipeline_desc': None,
         'ignore_list': ['parent'],
-        'display_preview': True
+        'display_preview': False
     }
 
     if args.config:
         with open(args.config) as config:
             exec(config.read(), {}, configuration)
+            
+    configuration['display_preview'] = args.display_preview
         
 
     if args.pipeline:

@@ -85,35 +85,35 @@ class GtkGstController(object):
 
         self.poll_id = None
 
-        self.window = Gtk.Window()#Gtk.WINDOW_TOPLEVEL)
+        self.window = Gtk.Window()
         self.window.set_title(pipeline_launcher.pipeline.get_name())
-        self.window.set_size_request(800, 768)
-        # Sets the border width of the window.
+        self.window.set_size_request(1280, 720)
+        # set border width of the window
         self.window.set_border_width(6)
 
         self.main_container = Gtk.VBox(False, 0)
         self.window.add(self.main_container)
 
-        #self.resizable_container = Gtk.VBox(False, 0)
-        self.resizable_container = Gtk.VPaned()
+        self.resizable_container = Gtk.HPaned()
         self.properties_container = Gtk.VBox(False, 0)
 
-        # graphical pipeline outpu
+        # video sink area
         self.preview_container = Gtk.HBox(False, 0)
-        self.preview_container.set_size_request(800,200)
+        self.preview_container.set_size_request(320, 240)
 
-        # parameter area
+        # properties area
         self.scrolled_window = scrolled_window = Gtk.ScrolledWindow()
         scrolled_window.set_border_width(0)
         scrolled_window.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.ALWAYS)
         scrolled_window.add_with_viewport(self.properties_container)
+        scrolled_window.set_size_request(400,200)
 
         # play/stop/pause controls
         pipeline_controls = self._create_pipeline_controls(pipeline_launcher)
 
         if display_preview:
-            self.resizable_container.pack1(self.preview_container, resize=True, shrink=False)
-        self.resizable_container.pack2(self.scrolled_window, resize=True, shrink=False)
+            self.resizable_container.pack1(self.preview_container, resize=True, shrink=True)
+        self.resizable_container.pack2(self.scrolled_window, resize=True, shrink=True)
 
         self.main_container.pack_start(self.resizable_container, True, True, 0)
         self.main_container.pack_end(pipeline_controls, False, False, 0)
@@ -139,10 +139,8 @@ class GtkGstController(object):
         videowidget.show()
         self.preview_container.pack_start(videowidget, True, True, 0)
         # Sync with the X server before giving the X-id to the sink
-        GObject.idle_add(Gdk.Display.get_default().sync)
-        #Gtk.gdk.display_get_default().sync()
-        GObject.idle_add(videowidget.set_sink, message.src)
-        #videowidget.set_sink(message.src)
+        GObject.idle_add(Gdk.Display.get_default().sync, priority=GObject.PRIORITY_HIGH)
+        GObject.idle_add(videowidget.set_sink, message.src, priority=GObject.PRIORITY_HIGH)
         message.src.set_property('force-aspect-ratio', True)
 
     def _create_pipeline_controls(self, pipeline_launcher):

@@ -24,7 +24,8 @@ Copyright 2013, Dirk Van Haerenborgh, under the terms of LGPL
 """
 __author__ = ("Florent Thiery <fthiery@gmail.com>", "Dirk Van Haerenborgh <vhdirk@gmail.com>")
 
-
+import os
+import time
 import gi
 gi.require_version('Gst', '1.0')
 from gi.repository import GLib, GObject, Gst, Gio, Gtk
@@ -73,6 +74,7 @@ class GtkGstController(object):
 
     def __init__(self, pipeline_launcher, show_messages=False, display_preview=True, ignore_list=[]):
         self.videowidget = None
+        self.folder = None
         self.prop_watchlist = list()
 
         self.pipeline_launcher = pipeline_launcher
@@ -146,8 +148,6 @@ class GtkGstController(object):
         GObject.idle_add(Gdk.Display.get_default().sync, priority=GObject.PRIORITY_HIGH)
         GObject.idle_add(videowidget.set_sink, message.src, priority=GObject.PRIORITY_HIGH)
         message.src.set_property('force-aspect-ratio', True)
-        if hasattr(self, "take_picture_btn"):
-            self.take_picture_btn.set_sensitive(True)
 
     def _create_pipeline_controls(self, pipeline_launcher):
         container = Gtk.VBox(False,3)
@@ -179,8 +179,24 @@ class GtkGstController(object):
         self._create_button(label="Show messages", callback=self._on_show_messages, container=container_btns)
         if "dumpsink" in pipeline_launcher.pipeline_desc:
             logger.info('Found dumpsink in pipeline, adding take picture button')
-            self.take_picture_btn = take_picture_btn = self._create_button(label="Take picture", callback=self._on_take_picture, container=container_btns)
+
+            picture_btns = Gtk.HBox(homogeneous=False)
+            container.add(picture_btns)
+
+            self.take_picture_btn = take_picture_btn = self._create_button(label="Take picture", callback=self._on_take_picture, container=picture_btns)
             take_picture_btn.set_sensitive(False)
+            self.folder_btn = self._create_button(label="Choose folder", callback=self._on_choose_folder, container=picture_btns)
+
+            label = Gtk.Label("Filename:")
+            self.filename_entry = entry = Gtk.TextView()
+            entry.set_editable(False)
+            entry.set_size_request(100, -1)
+            self.textbuffer = textbuffer = entry.get_buffer()
+            fname = "%s.jpg" %int(time.time())
+            textbuffer.set_text(fname)
+            textbuffer.set_modified(False)
+            picture_btns.add(label)
+            picture_btns.add(entry)
         return container
 
     def run_pipeline(self, *args):
@@ -233,6 +249,17 @@ class GtkGstController(object):
         from .messages import MessagesDisplayer
         test  = MessagesDisplayer(pipelinemanager_instance=self.pipeline_launcher)
 
+    def yesno(self, label):
+        d = Gtk.MessageDialog(
+            parent=self.window,
+            type=Gtk.MessageType.QUESTION,
+            buttons=(Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL,Gtk.STOCK_YES, Gtk.ResponseType.OK),
+            message_format=label,
+        )
+        r = d.run()
+        d.destroy()
+        return r == Gtk.ResponseType.OK
+
     def _on_take_picture(self, *args):
         sink = self.pipeline_launcher.pipeline.get_by_name('dumpsink')
         if sink:
@@ -241,14 +268,42 @@ class GtkGstController(object):
             cap = sample.get_caps()
             data = buf.extract_dup(0, buf.get_size())
             logger.info("Got picture: %s" %cap)
-            import time
-            fname = "%i.jpg" %time.time()
-            f = open(fname, "wb")
+            if self.textbuffer.get_modified():
+                s, e = self.textbuffer.get_bounds()
+                fname = self.textbuffer.get_text(s, e, include_hidden_chars=True)
+            else:
+                fname = "%s.jpg" %int(time.time())
+                self.textbuffer.set_text(fname)
+                self.textbuffer.set_modified(False)
+            abs_fname = os.path.join(self.folder, fname)
+            if os.path.isfile(abs_fname):
+                overwrite = self.yesno("Are you sure you want to overwrite file %s ?" %abs_fname)
+                if not overwrite:
+                    return
+            f = open(abs_fname, "wb")
             f.write(data)
             f.close()
-            logger.info('Wrote file %s (%i kbytes)' %(fname, round(buf.get_size()/1024)))
+            logger.info('Wrote file %s (%i kbytes)' %(abs_fname, round(buf.get_size()/1024)))
         else:
             logger.error('dumpsink element not found')
+
+    def _on_choose_folder(self, *args):
+        folderchooser = Gtk.FileChooserDialog(
+            title="Choose folder to store pictures", 
+            parent=self.window, 
+            action=Gtk.FileChooserAction.SELECT_FOLDER, 
+            buttons=(Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL,Gtk.STOCK_SAVE, Gtk.ResponseType.OK),
+        )
+        response = folderchooser.run()
+        if response == Gtk.ResponseType.OK:
+            folder = folderchooser.get_filename()
+            if os.path.isdir(folder):
+                logger.info('Chose folder %s' %folder)
+                self.folder = folder
+                self.folder_btn.set_label('Folder: %s' %folder)
+                self.take_picture_btn.set_sensitive(True)
+                self.filename_entry.set_editable(True)
+        folderchooser.destroy()
 
     def _on_show_tree(self, *args):
         dotfile = self.pipeline_launcher.dump_dot_file()

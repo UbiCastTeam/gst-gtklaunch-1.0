@@ -1,9 +1,9 @@
-# gst-gengui
+# gstgengui
 
-gst-gengui is an utility for testing and controlling live GStreamer pipelines and elements.
+gstgengui is an utility for testing and controlling live GStreamer pipelines and elements.
 It will inspect the specified pipeline to create the GTK GUI "automagically", based on the value type of properties.
 
-gst-gengui currently requires (Ubuntu 13.04 package names):
+gstgengui currently requires (Ubuntu 13.04 package names):
    * python3-gi
    * gir1.2-gtk-3.0
    * gir1.2-gstreamer-1.0
@@ -31,7 +31,7 @@ It has been tested on Ubuntu 13.04
 Will launch the gst-launch-compliant pipeline description:
 
 ```bash
-gst-gengui videotestsrc ! xvimagesink sync=false
+gstgengui videotestsrc ! xvimagesink sync=false
 ```
 
 If no argument is given, it will launch the pipeline description found in the gstgengui/config.py file

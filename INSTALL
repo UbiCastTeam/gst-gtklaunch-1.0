@@ -1,7 +1,7 @@
 = Requirements =
-* python-gtk2.4
-* python-gstreamer
-* python-gobject 
+* python3-gi
+* gir1.2-gtk-3.0
+* gir1.2-gstreamer-1.0
 
 = Instructions =
 

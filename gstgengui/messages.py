@@ -1,12 +1,40 @@
-#!/usr/bin/env python
-# based on list_store.py example from pygtk2
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 
-import gobject
-import gtk
+# * This Program is free software; you can redistribute it and/or
+# * modify it under the terms of the GNU Lesser General Public
+# * License as published by the Free Software Foundation; either
+# * version 2.1 of the License, or (at your option) any later version.
+# *
+# * Libav is distributed in the hope that it will be useful,
+# * but WITHOUT ANY WARRANTY; without even the implied warranty of
+# * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# * Lesser General Public License for more details.
+# *
+# * You should have received a copy of the GNU Lesser General Public
+# * License along with Libav; if not, write to the Free Software
+# * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
+"""
+Gst-gengui: event messages
+
+based on list_store.py example from pygtk2
+
+Copyright 2009, Florent Thiery, under the terms of LGPL
+Copyright 2013, Dirk Van Haerenborgh, under the terms of LGPL
+
+"""
+__author__ = ("Florent Thiery <fthiery@gmail.com>", "Dirk Van Haerenborgh <vhdirk@gmail.com>")
+
+
+import gi
+gi.require_version('Gst', '1.0')
+from gi.repository import GObject, Gst, Gtk
+
 try:
     import easyevent
 except Exception:
-    import event as easyevent
+    from . import event as easyevent
 
 (
     COLUMN_SOURCE,
@@ -14,14 +42,14 @@ except Exception:
     COLUMN_DATA,
 ) = range(3)
 
-class MessagesDisplayer(easyevent.User, gtk.Window):
+class MessagesDisplayer(easyevent.User, Gtk.Window):
     def __init__(self, parent=None, pipelinemanager_instance=None):
         easyevent.User.__init__(self)
         self.register_event('gst_element_message')
 
         self.pipelinemanager_instance = pipelinemanager_instance
 
-        gtk.Window.__init__(self)
+        Gtk.Window.__init__(self)
         try:
             self.set_screen(parent.get_screen())
         except AttributeError:
@@ -36,22 +64,22 @@ class MessagesDisplayer(easyevent.User, gtk.Window):
         self.set_border_width(8)
         self.set_default_size(500, 250)
 
-        vbox = gtk.VBox(False, 8)
+        vbox = Gtk.VBox(False, 8)
         self.add(vbox)
 
-        label = gtk.Label('This are the gst.Element originating messages')
-        vbox.pack_start(label, False, False)
+        label = Gtk.Label('This are the gst.Element originating messages')
+        vbox.pack_start(label, False, False, 0)
 
-        sw = gtk.ScrolledWindow()
-        sw.set_shadow_type(gtk.SHADOW_ETCHED_IN)
-        sw.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
-        vbox.pack_start(sw)
+        sw = Gtk.ScrolledWindow()
+        sw.set_shadow_type(Gtk.ShadowType.ETCHED_IN)
+        sw.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
+        vbox.pack_start(sw, True, True, 0)
 
         # create tree model
         self.store = model = self.__create_model()
 
         # create tree view
-        treeview = gtk.TreeView(model)
+        treeview = Gtk.TreeView(model)
         treeview.set_rules_hint(True)
         treeview.set_search_column(COLUMN_DATA)
 
@@ -68,17 +96,18 @@ class MessagesDisplayer(easyevent.User, gtk.Window):
                 return
         data = event.content
         message_data = data['data']
-        keys = message_data.keys()
+        
         data_string = ''
-        for key in keys:
-            data_string = '%s %s:%s' %(data_string, key, message_data[key])
+        for i in range(message_data.n_fields()):
+            key = message_data.nth_field_name(i)
+            data_string = '{0} {1}:{2}'.format(data_string, key, message_data.get_value(key))
         self.append_data((data['source'], data['name'], data_string))
 
     def __create_model(self):
-        lstore = gtk.ListStore(
-            gobject.TYPE_STRING,
-            gobject.TYPE_STRING,
-            gobject.TYPE_STRING)
+        lstore = Gtk.ListStore(
+            GObject.TYPE_STRING,
+            GObject.TYPE_STRING,
+            GObject.TYPE_STRING)
         return lstore
 
     def append_data(self, data):
@@ -91,26 +120,26 @@ class MessagesDisplayer(easyevent.User, gtk.Window):
 
     def __add_columns(self, treeview):
         # column for source
-        column = gtk.TreeViewColumn('Source Element', gtk.CellRendererText(),
+        column = Gtk.TreeViewColumn('Source Element', Gtk.CellRendererText(),
                                      text=COLUMN_SOURCE)
         column.set_sort_column_id(COLUMN_SOURCE)
         treeview.append_column(column)
 
         # column for name
-        column = gtk.TreeViewColumn('Message Name', gtk.CellRendererText(),
+        column = Gtk.TreeViewColumn('Message Name', Gtk.CellRendererText(),
                                      text=COLUMN_NAME)
         column.set_sort_column_id(COLUMN_NAME)
         treeview.append_column(column)
 
         # column for data
-        column = gtk.TreeViewColumn('Message Data', gtk.CellRendererText(),
+        column = Gtk.TreeViewColumn('Message Data', Gtk.CellRendererText(),
                                      text=COLUMN_DATA)
         column.set_sort_column_id(COLUMN_DATA)
         treeview.append_column(column)
 
 def main():
     MessagesDisplayer()
-    gtk.main()
+    Gtk.main()
 
 if __name__ == '__main__':
     main()

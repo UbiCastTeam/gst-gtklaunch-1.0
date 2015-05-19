@@ -1,6 +1,6 @@
 Random segfault (trace):
 
-Happens sometimes when trying to redirect X texture to the gtk drawable and if there is an element such as videobalance in the pipeline (after receiving the "prepare-xwindow-id" event)
+Happens sometimes when trying to redirect X texture to the gtk drawable and if there is an element such as videobalance in the pipeline (after receiving the "prepare-window-handle" event)
 
 Can be reproduced by either launching it periodically or by refreshing the pipeline quickly
 

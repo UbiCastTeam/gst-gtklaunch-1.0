@@ -1,10 +1,11 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 Module to do event-driven programming very easily.
 @author: Damien Boucard
+@author: Dirk Van Haerenborgh
 @license: Gnu/LGPLv2
-@version: 1.0
+@version: 1.1
 
 Module attributes:
 
@@ -19,7 +20,7 @@ dispatcher = 'callback'
 
 log_ignores = ["level"]
 
-class Manager:
+class Manager(object):
     """ Manages the event-system.
     This class is instanciated on importing the module,
     so it is not needed to use it directly but via Launch and Listener.
@@ -81,7 +82,7 @@ class Manager:
         if event.type in self.listeners and self.listeners[event.type]:
             for obj in self.listeners[event.type]:
                 # Try to call event-specific handle method
-                fctname = obj.event_pattern %(event.type)
+                fctname = obj.event_pattern.format(event.type)
                 if hasattr(obj, fctname):
                     function = getattr(obj, fctname)
                     if callable(function):
@@ -105,13 +106,13 @@ class Manager:
                         continue
                 # No handle method found, raise error ?
                 if not obj.event_silent:
-                    raise UnhandledEventError('%s has no method to handle %s' %(obj, event))
+                    raise UnhandledEventError('{0} has no method to handle {1}'.format(obj, event))
         else:
             pass#logger.warning('No listener for the event type %r.', event.type)
 
 Manager()
     
-class Listener:
+class Listener(object):
     """ Generic class for listening to events.
     
     It is just needed to herite from this class and register to events to listen easily events.
@@ -143,7 +144,7 @@ class Listener:
         @type silent: C{bool}
         """
         self.event_manager = Manager.instance
-        self.event_pattern = prefix + '%s' + suffix
+        self.event_pattern = prefix + '{0}' + suffix
         self.event_default = default
         self.event_silent = silent
         #logger.debug('Dispatcher in use is %s' %dispatcher)
@@ -171,7 +172,7 @@ class Listener:
         self.unregister_event(*self.event_manager.get_events_listened_by(self))
 
 
-class Launcher:
+class Launcher(object):
     """ Generic class for launching events.
     It is just needed to herite from this class to launch easily events.
     @ivar event_manager: The event manager instance.
@@ -190,7 +191,7 @@ class Launcher:
         @type content: any
         """
         if event_type not in log_ignores:
-            logger.debug('Launching event type %s from %s' %(event_type, self))
+            logger.debug('Launching event type {0} from {1}'.format(event_type, self))
         self.event_manager.dispatch_event(Event(event_type, self, content))
 
 
@@ -238,7 +239,7 @@ class forward_gsignal(User):
         self.event_manager.dispatch_event(
                                        Event(self.event_type, source, content))
 
-class Event:
+class Event(object):
     """ Represents an event entity.
     @ivar type: Type of the event.
     @type type: C{str}
@@ -265,7 +266,7 @@ class Event:
         @return: Object converted string.
         @rtype: C{str}
         """
-        return '<%s.%s type=%s source=%s content=%s>' %(__name__, self.__class__.__name__, self.type, self.source, self.content)
+        return '<{0}.{1} type={2} source={3} content={4}>'.format(__name__, self.__class__.__name__, self.type, self.source, self.content)
     
     
 class UnhandledEventError(AttributeError):

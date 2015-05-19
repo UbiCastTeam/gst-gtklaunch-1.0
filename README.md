@@ -25,6 +25,7 @@ It has been tested on Ubuntu 13.04
    * automatic video texture embedding
    * properties control using gtk widgets for all (common) data types
    * pipeline graph (.dot format) displaying
+   * if you add something like "tee. ! queue ! jpegenc ! fakesink name=dumpsink", you will be able to save jpeg thumbnails to disk
 
 ## Usage
 

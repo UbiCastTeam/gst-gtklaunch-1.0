@@ -57,6 +57,9 @@ class VideoWidget(Gtk.DrawingArea):
             self.imagesink = sink
             self.imagesink.set_window_handle(xid)
 
+    def get_sink(self):
+        return self.imagesink
+
 class GtkGstController(object):
 
     def delete_event(self, widget, event, data=None):
@@ -69,6 +72,7 @@ class GtkGstController(object):
         Gtk.main_quit()
 
     def __init__(self, pipeline_launcher, show_messages=False, display_preview=True, ignore_list=[]):
+        self.videowidget = None
         self.prop_watchlist = list()
 
         self.pipeline_launcher = pipeline_launcher
@@ -134,14 +138,16 @@ class GtkGstController(object):
         
 
     def _create_videowidget(self, message):
-        videowidget = None
-        videowidget = VideoWidget()
+        self.videowidget = None
+        self.videowidget = videowidget = VideoWidget()
         videowidget.show()
         self.preview_container.pack_start(videowidget, True, True, 0)
         # Sync with the X server before giving the X-id to the sink
         GObject.idle_add(Gdk.Display.get_default().sync, priority=GObject.PRIORITY_HIGH)
         GObject.idle_add(videowidget.set_sink, message.src, priority=GObject.PRIORITY_HIGH)
         message.src.set_property('force-aspect-ratio', True)
+        if hasattr(self, "take_picture_btn"):
+            self.take_picture_btn.set_sensitive(True)
 
     def _create_pipeline_controls(self, pipeline_launcher):
         container = Gtk.VBox(False,3)
@@ -165,13 +171,16 @@ class GtkGstController(object):
 
         self.state_label = self._create_label("State", container=container_btns)
         self.position_label = self._create_label("Position", container=container_btns)
-        start_btn = self._create_button(label="Play", callback=self.run_pipeline, container=container_btns)
-        stop_btn = self._create_button(label="Stop", callback=self.stop_pipeline, container=container_btns)
-        pause_btn = self._create_button(label="Pause", callback=pipeline_launcher.pause, container=container_btns)
-        eos_btn = self._create_button(label="Send EOS", callback=pipeline_launcher.send_eos, container=container_btns)
-        dot_btn = self._create_button(label="Show tree", callback=self._on_show_tree, container=container_btns)
-        messages_btn = self._create_button(label="Show messages", callback=self._on_show_messages, container=container_btns)
-
+        self._create_button(label="Play", callback=self.run_pipeline, container=container_btns)
+        self._create_button(label="Stop", callback=self.stop_pipeline, container=container_btns)
+        self._create_button(label="Pause", callback=pipeline_launcher.pause, container=container_btns)
+        self._create_button(label="Send EOS", callback=pipeline_launcher.send_eos, container=container_btns)
+        self._create_button(label="Show tree", callback=self._on_show_tree, container=container_btns)
+        self._create_button(label="Show messages", callback=self._on_show_messages, container=container_btns)
+        if "dumpsink" in pipeline_launcher.pipeline_desc:
+            logger.info('Found dumpsink in pipeline, adding take picture button')
+            self.take_picture_btn = take_picture_btn = self._create_button(label="Take picture", callback=self._on_take_picture, container=container_btns)
+            take_picture_btn.set_sensitive(False)
         return container
 
     def run_pipeline(self, *args):
@@ -223,6 +232,23 @@ class GtkGstController(object):
     def _on_show_messages(self, *args):
         from .messages import MessagesDisplayer
         test  = MessagesDisplayer(pipelinemanager_instance=self.pipeline_launcher)
+
+    def _on_take_picture(self, *args):
+        sink = self.pipeline_launcher.pipeline.get_by_name('dumpsink')
+        if sink:
+            sample = sink.get_property('last-sample')
+            buf = sample.get_buffer()
+            cap = sample.get_caps()
+            data = buf.extract_dup(0, buf.get_size())
+            logger.info("Got picture: %s" %cap)
+            import time
+            fname = "%i.jpg" %time.time()
+            f = open(fname, "wb")
+            f.write(data)
+            f.close()
+            logger.info('Wrote file %s (%i kbytes)' %(fname, round(buf.get_size()/1024)))
+        else:
+            logger.error('dumpsink element not found')
 
     def _on_show_tree(self, *args):
         dotfile = self.pipeline_launcher.dump_dot_file()

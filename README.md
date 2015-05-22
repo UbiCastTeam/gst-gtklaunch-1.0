@@ -1,20 +1,15 @@
 # gstgengui
 
-gstgengui is an utility for testing and controlling live GStreamer pipelines and elements.
-It will inspect the specified pipeline to create the GTK GUI "automagically", based on the value type of properties.
+gstgengui is an utility for testing and controlling live GStreamer pipelines and elements. It will inspect the specified pipeline to create the GTK GUI "automagically", based on the value type of properties.
 
-gstgengui currently requires (Ubuntu 13.04 package names):
+![screenshot](https://raw.githubusercontent.com/UbiCastTeam/gst-gengui/master/screenshot.png)
+
+gstgengui currently requires (Ubuntu package names):
    * python3-gi
    * gir1.2-gtk-3.0
    * gir1.2-gstreamer-1.0
    * graphviz 
    * xdot python interactive dot viewer (sudo easy_install xdot)
-
-Non-packaged dependancies:
-   * https://launchpad.net/easyevent
-   * http://code.google.com/p/gstmanager/
-
-It has been tested on Ubuntu 13.04
 
 ## Features
 
@@ -22,8 +17,8 @@ It has been tested on Ubuntu 13.04
    * pipeline controls: play, pause, stop, send_eos
    * pipeline states display: current state, current position, duration (if available)
    * pipeline editing and relaunching
-   * automatic video texture embedding
-   * properties control using gtk widgets for all (common) data types
+   * automatic video sink embedding
+   * foldable sidebar containing properties control widgets for most property types
    * pipeline graph (.dot format) displaying
    * if you add something like "tee. ! queue ! jpegenc ! fakesink name=dumpsink", you will be able to save jpeg thumbnails to disk
 
@@ -44,7 +39,6 @@ Install this package as a python egg:
 ```bash
 ./setup.py install
 ```
-
 
 ## Options
 

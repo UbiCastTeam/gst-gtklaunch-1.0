@@ -1,12 +1,6 @@
-* fix filesrc/filesink live changing
-* create proper installer
-* find a way to apply sliders only on release
+* fix location selector widget
+* fix VOD pipeline restart
 * non-live changeable parameters handling (MUTABLE prop)
 * message-powered widgets (level, analyse, ...)
-* integrate bottleneckfinder
-* interop with stefan's performance measurement tools
-* rename to gst-gtklaunch ?
-
-HARD:
-* clutter-based interactive dot graph viewer (anti-bottleneck helper)
 * print modified gst-launch compatible pipeline syntax after widget-based alteration
+* fix dotfile display

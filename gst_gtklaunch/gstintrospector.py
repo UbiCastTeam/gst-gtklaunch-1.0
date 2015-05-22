@@ -50,7 +50,7 @@ class Property(object):
         self.name = property.name
         self.human_name = property.nick
         self.value_type = property.value_type
-        self.is_readonly = (property.flags == 225)
+        self.is_readonly = not property.flags & GObject.PARAM_WRITABLE
         self.update_value()
 
     def update_value(self):
@@ -114,25 +114,22 @@ class Element(object):
         self.enum_properties = enum_properties = []
 
         for property in _properties_list:
-            if property.name in ignore_list:
+            if not property.flags & GObject.PARAM_READABLE:
+                logger.debug('Property %s is not readable, skipping' %property.name)
+            elif property.name in ignore_list: 
                 logger.debug("Property {0} is in ignore list, skipping".format(property.name))
-
             elif property.value_type in NUMBER_GTYPES:
                 number_property = NumberProperty(property, self)
                 number_properties.append(number_property)
-
             elif property.value_type == GObject.TYPE_BOOLEAN:
                 boolean_property = BooleanProperty(property, self)
                 boolean_properties.append(boolean_property)
-
             elif property.value_type in STRING_GTYPES: 
                 string_property = StringProperty(property, self)
                 string_properties.append(string_property)
-          
             elif property.value_type.is_a(GObject.TYPE_ENUM):
                 enum_property = EnumProperty(property, self)
                 enum_properties.append(enum_property)
-
             else:
                 logger.error("Property '{0}' with type {1} has no associated known types, skipping".format(property.name, property.value_type))
 

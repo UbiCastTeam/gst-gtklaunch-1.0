@@ -91,7 +91,7 @@ def main():
     configuration = {
         'name': None,
         'pipeline_desc': None,
-        'ignore_list': ['parent', 'last-sample'],
+        'ignore_list': ['parent', 'last-sample', 'alloc-pad'],
         'display_preview': False
     }
 

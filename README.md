@@ -1,6 +1,6 @@
 # gst-gtklaunch-1.0
 
-gst-gtklaunch-1.0 is an utility for testing and controlling live GStreamer pipelines and elements. It will inspect the specified pipeline to create the GTK GUI "automagically", based on the value type of properties.
+gst-gtklaunch-1.0 is an utility for testing and controlling live GStreamer 1.0 pipelines and elements. It will inspect the specified pipeline to create the GTK GUI "automagically", based on the value type of properties.
 
 ![screenshot](https://raw.githubusercontent.com/UbiCastTeam/gst-gtklaunch/master/screenshot.png)
 

@@ -375,7 +375,8 @@ class GtkGstController(object):
         logger.info("Refreshing pipeline with description: {0}" .format(self.new_description))
         self.pipeline_launcher.redefine_pipeline(new_string=self.new_description)
         self.pipeline_launcher.bus.connect('message::element', self.on_sync_message)
-        self.pipeline_launcher.run()
+        #self.pipeline_launcher.run()
+        self.run_pipeline()
         self.textbuffer.set_modified(False)
         self._build_elements()
 

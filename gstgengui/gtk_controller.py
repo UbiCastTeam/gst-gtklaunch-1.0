@@ -575,7 +575,7 @@ class GtkGstController(object):
                 if child.get_label() == parent_name:
                     child.get_child().add(widget)
         else:
-            self.properties_container.add(widget)
+            self.properties_container.pack_start(widget, False, False, 5)
 
     def add_element_widget(self, element, parent_name=None):
         logger.debug("Adding widgets for element {0}".format(element.name))

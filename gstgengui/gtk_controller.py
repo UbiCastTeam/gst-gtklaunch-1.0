@@ -75,6 +75,7 @@ class GtkGstController(object):
     def __init__(self, pipeline_launcher, show_messages=False, display_preview=True, ignore_list=[]):
         self.videowidget = None
         self.folder = None
+        self.props_visible = False
         self.prop_watchlist = list()
 
         self.pipeline_launcher = pipeline_launcher
@@ -91,16 +92,22 @@ class GtkGstController(object):
 
         self.poll_id = None
 
-        self.window = Gtk.Window()
-        self.window.set_title(pipeline_launcher.pipeline.get_name())
-        self.window.set_size_request(1280, 720)
-        # set border width of the window
-        self.window.set_border_width(6)
+        self.window = w = Gtk.Window()
+        w.set_title("gstgengui")
+        w.set_size_request(1280, 720)
+        w.set_border_width(6)
 
         self.main_container = Gtk.VBox(False, 0)
         self.window.add(self.main_container)
 
+        self.preview_and_control = Gtk.HBox(False, 0)
+
         self.resizable_container = Gtk.HPaned()
+
+        self.preview_and_control.pack_start(self.resizable_container, True, True, 0)
+        self.show_props_btn = show_props_btn = self._create_button("<", callback=self.toggle_show_props)
+        self.preview_and_control.pack_end(show_props_btn, False, False, 0)
+
         self.properties_container = Gtk.VBox(False, 0)
 
         # video sink area
@@ -119,13 +126,27 @@ class GtkGstController(object):
 
         if display_preview:
             self.resizable_container.pack1(self.preview_container, resize=True, shrink=True)
-        self.resizable_container.pack2(self.scrolled_window, resize=True, shrink=True)
 
-        self.main_container.pack_start(self.resizable_container, True, True, 0)
+        self.main_container.pack_start(self.preview_and_control, True, True, 0)
         self.main_container.pack_end(pipeline_controls, False, False, 0)
 
-
         self.window.show_all()
+
+    def toggle_show_props(self, *args):
+        print(not self.props_visible)
+        self.set_properties_pane_visible(not self.props_visible)
+
+    def set_properties_pane_visible(self, state):
+        if state:
+            self.resizable_container.pack2(self.scrolled_window, resize=True, shrink=True)
+            self.props_visible = True
+            self.scrolled_window.show()
+            self.properties_container.show()
+            self.show_props_btn.set_label('>')
+        else:
+            self.resizable_container.remove(self.scrolled_window)
+            self.props_visible = False
+            self.show_props_btn.set_label('<')
 
     def on_sync_message(self, bus, message):
         if message.get_structure() is None:

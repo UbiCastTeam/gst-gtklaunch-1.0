@@ -27,7 +27,7 @@ gst-gtklaunch-1.0 currently requires (Ubuntu package names):
 Will launch the gst-launch-compliant pipeline description:
 
 ```bash
-gst-gtklaunch-1.0 videotestsrc ! xvimagesink sync=false
+gst-gtklaunch-1.0 videotestsrc ! xvimagesink
 ```
 
 If no argument is given, it will launch the pipeline description found in the gst-gtklaunch-1.0/config.py file

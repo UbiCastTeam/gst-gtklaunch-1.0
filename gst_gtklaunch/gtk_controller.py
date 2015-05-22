@@ -213,10 +213,10 @@ class GtkGstController(object):
             self.filename_entry = entry = Gtk.TextView()
             entry.set_editable(False)
             entry.set_size_request(100, -1)
-            self.textbuffer = textbuffer = entry.get_buffer()
+            self.pic_textbuffer = pic_textbuffer = entry.get_buffer()
             fname = "%s.jpg" %int(time.time())
-            textbuffer.set_text(fname)
-            textbuffer.set_modified(False)
+            pic_textbuffer.set_text(fname)
+            pic_textbuffer.set_modified(False)
             picture_btns.add(label)
             picture_btns.add(entry)
         return container
@@ -294,13 +294,13 @@ class GtkGstController(object):
             cap = sample.get_caps()
             data = buf.extract_dup(0, buf.get_size())
             logger.info("Got picture: %s" %cap)
-            if self.textbuffer.get_modified():
-                s, e = self.textbuffer.get_bounds()
-                fname = self.textbuffer.get_text(s, e, include_hidden_chars=True)
+            if self.pic_textbuffer.get_modified():
+                s, e = self.pic_textbuffer.get_bounds()
+                fname = self.pic_textbuffer.get_text(s, e, include_hidden_chars=True)
             else:
                 fname = "%s.jpg" %int(time.time())
-                self.textbuffer.set_text(fname)
-                self.textbuffer.set_modified(False)
+                self.pic_textbuffer.set_text(fname)
+                self.pic_textbuffer.set_modified(False)
             abs_fname = os.path.join(self.folder, fname)
             if os.path.isfile(abs_fname):
                 overwrite = self.yesno("Are you sure you want to overwrite file %s ?" %abs_fname)

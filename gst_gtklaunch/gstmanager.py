@@ -127,7 +127,7 @@ class PipelineManager(easyevent.User):
 
     def get_position(self, *args):
         try:
-            position = self.pipeline.query_position(Gst.Format.TIME)[0]
+            position = self.pipeline.query_position(Gst.Format.TIME)[1]
             return self.convert_time_to_seconds(position)
         except Gst.QueryError:
             logger.error('Position query failed')
@@ -135,15 +135,14 @@ class PipelineManager(easyevent.User):
 
     def get_duration(self, *args):
         try:
-            duration = self.pipeline.query_duration(Gst.Format.TIME)[0]
+            duration = self.pipeline.query_duration(Gst.Format.TIME)[1]
             return self.convert_time_to_seconds(duration)
         except Gst.QueryError:
             logger.error('Duration query failed')
             return 0
 
     def has_duration(self):
-        duration = self.pipeline.query_duration(Gst.Format.TIME)[0]
-        logger.info(duration)
+        duration = self.pipeline.query_duration(Gst.Format.TIME)[1]
         if duration != -1:
             return True
         else:

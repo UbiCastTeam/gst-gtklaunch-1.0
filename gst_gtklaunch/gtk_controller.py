@@ -35,6 +35,7 @@ import logging
 logger = logging.getLogger('gst-gtklaunch-gtk')
 
 from .gstintrospector import PipelineIntrospector
+from .util import get_hms_string_from_seconds
 
 class VideoWidget(Gtk.DrawingArea):
     def __init__(self):
@@ -134,7 +135,6 @@ class GtkGstController(object):
         self.window.show_all()
 
     def toggle_show_props(self, *args):
-        print(not self.props_visible)
         self.set_properties_pane_visible(not self.props_visible)
 
     def set_properties_pane_visible(self, state):
@@ -241,6 +241,10 @@ class GtkGstController(object):
         self.pipeline_launcher.stop(*args)
         self._stop_pollings()
         self._clean_previews()
+        self._reset_controls()
+
+    def _reset_controls(self):
+        self.position_label.set_text("")
 
     def _build_elements(self):
         introspector = PipelineIntrospector(self.pipeline_launcher.pipeline, self.ignore_list)
@@ -344,9 +348,12 @@ class GtkGstController(object):
         self.state_label.set_text(state)
 
     def _check_for_pipeline_position(self):
-        duration = str(self.pipeline_launcher.get_duration())
-        position = str(self.pipeline_launcher.get_position())
-        self.position_label.set_text("Position: {0} s / {1} s".format(position, duration))
+        position = self.pipeline_launcher.get_position()
+        if self.pipeline_launcher.has_duration():
+            duration = self.pipeline_launcher.get_duration()
+            self.position_label.set_text("Position: %s / %s" %(get_hms_string_from_seconds(position), get_hms_string_from_seconds(duration)))
+        else:
+            self.position_label.set_text("Live since %s" %get_hms_string_from_seconds(position))
 
     def _check_for_pipeline_changes(self):
         if self.textbuffer.get_modified():

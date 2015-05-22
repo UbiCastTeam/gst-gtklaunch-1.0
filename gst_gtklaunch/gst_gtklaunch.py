@@ -23,7 +23,7 @@ Copyright 2013, Dirk Van Haerenborgh, under the terms of LGPL
 
 """
 __author__ = ("Florent Thiery <fthiery@gmail.com>", "Dirk Van Haerenborgh <vhdirk@gmail.com>")
-__package__= 'gstgengui'
+__package__= 'gst_gtklaunch'
 
 
 import os
@@ -31,7 +31,7 @@ os.environ['GI_TYPELIB_PATH'] = "/usr/local/lib/girepository-1.0:/usr/lib/girepo
 
 import sys
 import logging
-logger = logging.getLogger('gstgengui')
+logger = logging.getLogger('gst-gtklaunch-1.0')
 
 import gi
 gi.require_version('Gst', '1.0')
@@ -66,7 +66,7 @@ def parse_args(pipeline):
 def main():
 
     import argparse
-    parser = argparse.ArgumentParser(prog="gstgengui", description='utility for testing and controlling live GStreamer pipelines and elements',  formatter_class=argparse.ArgumentDefaultsHelpFormatter, conflict_handler='resolve')
+    parser = argparse.ArgumentParser(prog="gst-gtklaunch-1.0", description='utility for testing and controlling live GStreamer pipelines and elements',  formatter_class=argparse.ArgumentDefaultsHelpFormatter, conflict_handler='resolve')
     parser.add_argument('-v', "--verbose", action="store_true", dest="verbose", default=False, help="Use DEBUG verbosity level")
     parser.add_argument('-m', "--messages", action="store_true", dest="show_messages", default=False, help="Show gst.Element messages window before setting the pipeline to PLAYING")
     parser.add_argument('-c', "--config", dest="config", help="Loads the given configuration file")

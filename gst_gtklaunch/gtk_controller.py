@@ -32,7 +32,7 @@ from gi.repository import GLib, GObject, Gst, Gio, Gtk
 from gi.repository import Gdk, GdkX11, GstVideo
 
 import logging
-logger = logging.getLogger('gtk-gstgengui')
+logger = logging.getLogger('gst-gtklaunch-gtk')
 
 from .gstintrospector import PipelineIntrospector
 
@@ -93,7 +93,7 @@ class GtkGstController(object):
         self.poll_id = None
 
         self.window = w = Gtk.Window()
-        w.set_title("gstgengui")
+        w.set_title("gst-gtklaunch-1.0")
         w.set_size_request(1280, 720)
         w.set_border_width(6)
 

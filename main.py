@@ -18,8 +18,8 @@
 """
 GstGengui: runner for non-installed package
 """
-from gstgengui import gstgengui
+from gst_gtklaunch import gst_gtklaunch
     
 if __name__ == '__main__':
-    gstgengui.main()
+    gst_gtklaunch.main()
     

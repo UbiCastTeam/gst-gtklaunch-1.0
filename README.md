@@ -1,10 +1,10 @@
-# gstgengui
+# gst-gtklaunch-1.0
 
-gstgengui is an utility for testing and controlling live GStreamer pipelines and elements. It will inspect the specified pipeline to create the GTK GUI "automagically", based on the value type of properties.
+gst-gtklaunch-1.0 is an utility for testing and controlling live GStreamer pipelines and elements. It will inspect the specified pipeline to create the GTK GUI "automagically", based on the value type of properties.
 
 ![screenshot](https://raw.githubusercontent.com/UbiCastTeam/gst-gengui/master/screenshot.png)
 
-gstgengui currently requires (Ubuntu package names):
+gst-gtklaunch-1.0 currently requires (Ubuntu package names):
    * python3-gi
    * gir1.2-gtk-3.0
    * gir1.2-gstreamer-1.0
@@ -27,10 +27,10 @@ gstgengui currently requires (Ubuntu package names):
 Will launch the gst-launch-compliant pipeline description:
 
 ```bash
-gstgengui videotestsrc ! xvimagesink sync=false
+gst-gtklaunch-1.0 videotestsrc ! xvimagesink sync=false
 ```
 
-If no argument is given, it will launch the pipeline description found in the gstgengui/config.py file
+If no argument is given, it will launch the pipeline description found in the gst-gtklaunch-1.0/config.py file
 
 ## Installation
 
@@ -42,7 +42,7 @@ Install this package as a python egg:
 
 ## Options
 
-Check the gstgengui/config.py file for options and examples.
+Check the gst-gtklaunch-1.0/config.py file for options and examples.
 
 The config file contains static declarations for:
 * ignore-list: properties having one of these names will not be "introspected"

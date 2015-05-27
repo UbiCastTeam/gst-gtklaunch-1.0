@@ -95,7 +95,7 @@ class GtkGstController(object):
 
         self.window = w = Gtk.Window()
         w.set_title("gst-gtklaunch-1.0")
-        w.set_size_request(1280, 720)
+        w.set_size_request(800, 600)
         w.set_border_width(6)
 
         self.main_container = Gtk.VBox(False, 0)
@@ -543,37 +543,33 @@ class GtkGstController(object):
         label.show()
         container.add(label)
 
-        open_btn = self._create_button(label="Choose file", callback=self._display_fileselector, callback_args=prop, container=container)
+        open_btn = Gtk.FileChooserButton('Select a file')
+        open_btn.connect('file-set', self._on_file_set, prop)
         open_btn.show()
+        container.add(open_btn)
+
         self.prop_list.append((prop, open_btn))
 
         return container
 
-    def _display_fileselector(self, widget, prop):
-        chooser = Gtk.FileChooserDialog(title="Choose file",action=Gtk.FILE_CHOOSER_ACTION_OPEN,\
-                      buttons=(Gtk.STOCK_CANCEL,Gtk.RESPONSE_CANCEL,Gtk.STOCK_OPEN,Gtk.RESPONSE_OK))
-        chooser.show()
-        chooser.set_default_response(Gtk.RESPONSE_OK)
-        response = chooser.run()
-        if response == Gtk.RESPONSE_OK:
-            filename = chooser.get_filename()
-            widget.set_label(filename)
-            logger.info('{0} selected'.format(filename))
-            if prop.parent_element.name == 'filesrc':
-                logger.info('Warning, changing filename on running/dynamic pipelines is not supported, reparsing pipeline')
-                self.stop_pipeline()
-                self.pipeline_launcher.redefine_pipeline()
-                self._clean_controls()
-                self.pipeline_launcher.bus.connect('message::element', self.on_sync_message)
-                self._build_elements()
-                prop.parent_element._Gst_element.set_property(prop.name, filename)
-                self.pipeline_launcher.run()
-            else:
-                self.apply_changes(chooser, prop)
-
-        elif response == Gtk.RESPONSE_CANCEL:
-            logger.info('Closed, no file selected')
-        chooser.destroy()
+    def _on_file_set(self, source, prop):
+        fname = source.get_filename()
+        if prop.parent_element.name == 'filesrc':
+            #FIXME
+            logger.info('Changing location on filesrc (to %s) is not supported, restarting pipeline' %fname)
+            #prop.parent_element._Gst_element.set_property("location", fname)
+            #self.pipeline_launcher.stop()
+            #self.apply_changes(source, prop)
+            #self.pipeline_launcher.run()
+            #self.stop_pipeline()
+            self.pipeline_launcher.redefine_pipeline()
+            #self._clean_controls()
+            self.pipeline_launcher.bus.connect('message::element', self.on_sync_message)
+            #self._build_elements()
+            prop.parent_element._Gst_element.set_property(prop.name, fname) 
+            self.pipeline_launcher.run()
+        else:
+            self.apply_changes(source, prop)
 
     def add_controller(self, widget, parent_name=None):
         if parent_name:
@@ -617,7 +613,7 @@ class GtkGstController(object):
             value = widget.get_active()
         elif isinstance(widget, Gtk.Entry):
             value = widget.get_text()
-        elif isinstance(widget, Gtk.FileChooserDialog):
+        elif isinstance(widget, Gtk.FileChooserButton):
             value = widget.get_filename()
         else:
             logger.error('Cannot get value of widget of class {0} for property {1}'.format(widget.__class__, prop.name))
@@ -632,7 +628,7 @@ class GtkGstController(object):
             widget.set_active(prop.value)
         elif isinstance(widget, Gtk.Entry):
             widget.set_text(prop.value)
-        elif isinstance(widget, Gtk.FileChooserDialog):
+        elif isinstance(widget, Gtk.FileChooserButton):
             widget.set_filename(prop.value)
         else:
             logger.error('Cannot set value of widget of class {0} for property {1}'.format(widget.__class__, prop.name))        

@@ -32,6 +32,12 @@ gst-gtklaunch-1.0 videotestsrc ! xvimagesink
 
 If no argument is given, it will launch the pipeline description found in the gst-gtklaunch-1.0/config.py file
 
+Adding "jpegenc ! fakesink name=dumpsink" will show a "take picture" button
+
+```
+gst-gtklaunch-1.0 videotestsrc ! tee name=tee ! queue ! xvimagesink tee. ! queue ! jpegenc ! fakesink name=dumpsink
+```
+
 ## Installation
 
 Install this package as a python egg: 

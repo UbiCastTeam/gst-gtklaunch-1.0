@@ -177,7 +177,7 @@ class GtkGstController(object):
         label = Gtk.Label("Pipeline description")
         entry = Gtk.TextView()
         entry.set_size_request(400,50)
-        #entry.set_wrap_mode(Gtk.WRAP_CHAR) #XXX
+        entry.set_wrap_mode(Gtk.WrapMode.WORD)
         self.textbuffer = textbuffer = entry.get_buffer()
         textbuffer.set_text(pipeline_launcher.pipeline_desc)
         textbuffer.set_modified(False)

@@ -310,8 +310,14 @@ class GtkGstController(object):
             f.write(data)
             f.close()
             logger.info('Wrote file %s (%i kbytes)' %(abs_fname, round(buf.get_size()/1024)))
+            size = int(round(os.path.getsize(abs_fname)/1024))
+            self.take_picture_btn.set_label('Picture saved (%s kB)' %size)
+            GObject.timeout_add_seconds(3, self._reset_take_picture_btn)
         else:
             logger.error('dumpsink element not found')
+
+    def _reset_take_picture_btn(self):
+        self.take_picture_btn.set_label('Take picture')
 
     def _on_choose_folder(self, *args):
         folderchooser = Gtk.FileChooserDialog(

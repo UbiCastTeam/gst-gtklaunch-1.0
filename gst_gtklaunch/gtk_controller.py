@@ -291,6 +291,9 @@ class GtkGstController(object):
         if sink:
             sample = sink.get_property('last-sample')
             buf = sample.get_buffer()
+            diff = (buf.pts/Gst.SECOND - self.position)
+            if abs(diff) > 1:
+                logger.warning('Timestamp between pipeline position and dump differ by more than 1 second, you may be capturing a late buffer')
             cap = sample.get_caps()
             data = buf.extract_dup(0, buf.get_size())
             logger.info("Got picture: %s" %cap)
@@ -354,7 +357,7 @@ class GtkGstController(object):
         self.state_label.set_text(state)
 
     def _check_for_pipeline_position(self):
-        position = self.pipeline_launcher.get_position()
+        self.position = position = self.pipeline_launcher.get_position()
         if self.pipeline_launcher.has_duration():
             duration = self.pipeline_launcher.get_duration()
             self.position_label.set_text("Position: %s / %s" %(get_hms_string_from_seconds(position), get_hms_string_from_seconds(duration)))

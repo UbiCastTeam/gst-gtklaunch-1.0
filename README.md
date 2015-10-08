@@ -9,7 +9,7 @@ gst-gtklaunch-1.0 currently requires (Ubuntu package names):
    * gir1.2-gtk-3.0
    * gir1.2-gstreamer-1.0
    * graphviz 
-   * xdot python interactive dot viewer (sudo easy_install xdot)
+   * xdot (graphviz viewer) 
 
 ## Features
 

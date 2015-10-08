@@ -343,9 +343,7 @@ class GtkGstController(object):
     def _on_show_tree(self, *args):
         dotfile = self.pipeline_launcher.dump_dot_file()
         if dotfile:
-            from xdot import DotWindow
-            dotwindow = DotWindow()
-            dotwindow.open_file(dotfile)
+            os.system('xdot %s' %dotfile)
 
     def _clean_previews(self):
         for video in self.preview_container:

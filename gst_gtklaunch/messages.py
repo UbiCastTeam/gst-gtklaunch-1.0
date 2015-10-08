@@ -67,7 +67,7 @@ class MessagesDisplayer(easyevent.User, Gtk.Window):
         vbox = Gtk.VBox(False, 8)
         self.add(vbox)
 
-        label = Gtk.Label('This are the gst.Element originating messages')
+        label = Gtk.Label('These are the gst.Element originating messages')
         vbox.pack_start(label, False, False, 0)
 
         sw = Gtk.ScrolledWindow()
@@ -100,8 +100,14 @@ class MessagesDisplayer(easyevent.User, Gtk.Window):
         data_string = ''
         for i in range(message_data.n_fields()):
             key = message_data.nth_field_name(i)
-            data_string = '{0} {1}:{2}'.format(data_string, key, message_data.get_value(key))
-        self.append_data((data['source'], data['name'], data_string))
+            try:
+                val = message_data.get_value(key)
+            except TypeError:
+                val = None
+            if val:
+                data_string = '{0} {1}:{2}'.format(data_string, key, val)
+        if data_string:
+            self.append_data((data['source'], data['name'], data_string))
 
     def __create_model(self):
         lstore = Gtk.ListStore(

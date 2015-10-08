@@ -1,6 +1,6 @@
-* fix location selector widget
-* fix VOD pipeline restart
-* non-live changeable parameters handling (MUTABLE prop)
-* message-powered widgets (level, analyse, ...)
-* print modified gst-launch compatible pipeline syntax after widget-based alteration
-* fix dotfile display
+* delete previous video sink after non-live EOS (they currently stay in PLAYING state)
+* fix non-live pipeline restart
+* make running time editable when applicable (seek)
+* non-live changeable parameters handling (MUTABLE attribute)
+* message-powered widgets (level, analyse, spectrum, ...)
+* print modified gst-launch compatible pipeline syntax after widget-originated alteration

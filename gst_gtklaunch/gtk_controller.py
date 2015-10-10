@@ -57,7 +57,7 @@ class VideoWidget(Gtk.DrawingArea):
             xid = win.get_xid()
             assert xid
             self.imagesink = sink
-            if sink.get_name().startswith('vaapisink'):
+            if 'vaapi' in sink.get_name():
                 GObject.timeout_add(50, self.imagesink.set_window_handle, xid)
             else:
                 # This will crash with vaapisink

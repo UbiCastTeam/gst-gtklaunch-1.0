@@ -99,7 +99,7 @@ class GtkGstController(object):
 
         self.window = w = Gtk.Window()
         w.set_title("gst-gtklaunch-1.0")
-        w.set_size_request(800, 600)
+        w.set_size_request(1024, 600)
         w.set_border_width(6)
 
         self.main_container = Gtk.VBox(False, 0)
@@ -125,7 +125,7 @@ class GtkGstController(object):
         scrolled_window.set_border_width(0)
         scrolled_window.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.ALWAYS)
         scrolled_window.add_with_viewport(self.properties_container)
-        scrolled_window.set_size_request(400,200)
+        scrolled_window.set_size_request(500,200)
 
         # play/stop/pause controls
         pipeline_controls = self._create_pipeline_controls(pipeline_launcher)
@@ -417,13 +417,14 @@ class GtkGstController(object):
 
     def _create_element_widget(self, element):
         mcontainer = Gtk.Expander.new(element.name) 
+        mcontainer.set_resize_toplevel(True)
         container = Gtk.VBox()
         mcontainer.add(container)
         logger.debug("Element name: {0}".format(element.name))
         if len(element.number_properties) > 0:
             for number_property in element.number_properties:
-                spinner = self._create_spinner(number_property)
-                container.pack_start(spinner, False, False, 6)
+                spinbutton = self._create_spinbutton(number_property)
+                container.pack_start(spinbutton, False, False, 6)
         if len(element.boolean_properties) > 0:
             for boolean_property in element.boolean_properties:
                 check_btn = self._create_check_btn(boolean_property)
@@ -460,7 +461,7 @@ class GtkGstController(object):
         
     ################################################
 
-    def _create_spinner(self, prop):
+    def _create_spinbutton(self, prop):
         if prop.is_int:
             step_incr=1
             num_digits = 0
@@ -468,24 +469,25 @@ class GtkGstController(object):
             step_incr=0.1
             num_digits=1
 
-        adj = Gtk.Adjustment(value=prop.value, lower=prop.minimum, upper=prop.maximum, step_incr=step_incr, page_incr=0, page_size=0)
+        minval = max(prop.minimum, -1000000)
+        maxval = min(prop.maximum, 1000000)
+        adj = Gtk.Adjustment(value=prop.value, lower=minval, upper=maxval, step_incr=step_incr, page_incr=0, page_size=0)
 
         container = Gtk.HBox()
         label = Gtk.Label(prop.human_name)
-        spinner = Gtk.SpinButton.new(adj, 0.1, num_digits)
+        spinbutton = Gtk.SpinButton.new(adj, 0.1, num_digits)
 
         slider = Gtk.HScale.new(adj)
         # showing the value uses space, its shown in the entry next to it anyway
         slider.set_draw_value(False)
         #slider.set_digits(num_digits)
-        #slider.set_size_request(300, 20)
         slider.show()
 
         reset_btn = self._create_button("Reset", callback=self._reset_property, callback_args=[prop, adj])
 
         container.pack_start(label, False, True, 20)
         container.pack_end(reset_btn, False, True, 20)
-        container.pack_end(spinner, False, True, 20)
+        container.pack_end(spinbutton, False, True, 20)
         container.pack_end(slider, True, True, 20)
 
         if not prop.is_readonly:
@@ -500,7 +502,7 @@ class GtkGstController(object):
 
         self.prop_list.append((prop, adj))
         label.show()
-        spinner.show()
+        spinbutton.show()
         container.show()
 
         return container

@@ -43,31 +43,23 @@ from .util import get_hms_string_from_seconds
 class VideoWidget(Gtk.DrawingArea):
     def __init__(self):
         Gtk.DrawingArea.__init__(self)
-        self.imagesink = None
         self.set_double_buffered(False)
         #self.unset_flags(Gtk.DOUBLE_BUFFERED)
 
-    def do_expose_event(self, event):
-        if self.imagesink:
-            self.imagesink.expose()
-            return False
-        else:
-            return True
-
     def set_sink(self, sink):
+        logger.debug('Setting sink')
         win = self.get_property('window')
         if win:
             xid = win.get_xid()
             assert xid
-            self.imagesink = sink
+            logger.debug('Xid: %s' %xid)
             if 'vaapi' in sink.get_name():
-                GObject.timeout_add(50, self.imagesink.set_window_handle, xid)
+                GObject.timeout_add(50, sink.set_window_handle, xid, priority=GObject.PRIORITY_HIGH)
             else:
                 # This will crash with vaapisink
-                GObject.idle_add(self.imagesink.set_window_handle, xid)
-
-    def get_sink(self):
-        return self.imagesink
+                GObject.idle_add(sink.set_window_handle, xid, priority=GObject.PRIORITY_HIGH)
+        else:
+            logger.error('No win found')
 
 class GtkGstController(object):
 

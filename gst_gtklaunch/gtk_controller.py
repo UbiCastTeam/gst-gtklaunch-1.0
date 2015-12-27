@@ -35,7 +35,7 @@ from gi.repository import GLib, GObject, Gst, Gio, Gtk
 from gi.repository import Gdk, GdkX11, GstVideo
 
 import logging
-logger = logging.getLogger('gst-gtklaunch-gtk')
+logger = logging.getLogger('gst-gtklaunch')
 
 from .gstintrospector import PipelineIntrospector
 from .util import get_hms_string_from_seconds
@@ -127,7 +127,7 @@ class GtkGstController(object):
         scrolled_window.set_border_width(0)
         scrolled_window.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.ALWAYS)
         scrolled_window.add_with_viewport(self.properties_container)
-        scrolled_window.set_size_request(400,200)
+        scrolled_window.set_size_request(400,240)
 
         # play/stop/pause controls
         pipeline_controls = self._create_pipeline_controls(pipeline_launcher)
@@ -418,8 +418,11 @@ class GtkGstController(object):
         return button
 
     def _create_element_widget(self, element):
-        mcontainer = Gtk.Expander.new(element.name) 
+        mcontainer = Gtk.Expander.new("") 
         mcontainer.set_resize_toplevel(True)
+        mcontainer.set_spacing(7)
+        mcontainer.set_use_markup(True)
+        mcontainer.set_label("<span style=\"italic\" weight=\"bold\">%s</span>" %element.name)
         container = Gtk.VBox()
         mcontainer.add(container)
         logger.debug("Element name: {0}".format(element.name))

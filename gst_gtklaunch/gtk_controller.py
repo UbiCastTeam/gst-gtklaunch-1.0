@@ -40,6 +40,8 @@ logger = logging.getLogger('gst-gtklaunch-gtk')
 from .gstintrospector import PipelineIntrospector
 from .util import get_hms_string_from_seconds
 
+PADDING = 2
+
 class VideoWidget(Gtk.DrawingArea):
     def __init__(self):
         Gtk.DrawingArea.__init__(self)
@@ -125,7 +127,7 @@ class GtkGstController(object):
         scrolled_window.set_border_width(0)
         scrolled_window.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.ALWAYS)
         scrolled_window.add_with_viewport(self.properties_container)
-        scrolled_window.set_size_request(500,200)
+        scrolled_window.set_size_request(400,200)
 
         # play/stop/pause controls
         pipeline_controls = self._create_pipeline_controls(pipeline_launcher)
@@ -485,10 +487,10 @@ class GtkGstController(object):
 
         reset_btn = self._create_button("Reset", callback=self._reset_property, callback_args=[prop, adj])
 
-        container.pack_start(label, False, True, 20)
-        container.pack_end(reset_btn, False, True, 20)
-        container.pack_end(spinbutton, False, True, 20)
-        container.pack_end(slider, True, True, 20)
+        container.pack_start(label, False, True, PADDING)
+        container.pack_end(reset_btn, False, True, PADDING)
+        container.pack_end(spinbutton, False, True, PADDING)
+        container.pack_end(slider, True, True, PADDING)
 
         if not prop.is_readonly:
             adj.connect("value_changed", self.apply_changes, prop)
@@ -528,8 +530,8 @@ class GtkGstController(object):
         combobox.set_active(prop.value)
         combobox.connect("changed", self.apply_changes, prop)
         combobox.show()
-        container.pack_start(label, False, True, 20)
-        container.pack_end(combobox, True, True, 20)
+        container.pack_start(label, False, True, PADDING)
+        container.pack_end(combobox, True, True, PADDING)
         container.show()
         self.prop_list.append((prop, combobox))
         return container
@@ -547,8 +549,8 @@ class GtkGstController(object):
         else:
             entry.set_sensitive(False)
         entry.show()
-        container.pack_start(label, False, True, 20)
-        container.pack_end(entry, True, True, 20)
+        container.pack_start(label, False, True, PADDING)
+        container.pack_end(entry, True, True, PADDING)
         container.show()
         self.prop_list.append((prop, entry))
         return container

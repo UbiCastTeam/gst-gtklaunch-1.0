@@ -71,14 +71,19 @@ class VideoWidget(Gtk.DrawingArea):
 
 class GtkGstController(object):
 
-    def delete_event(self, widget, event, data=None):
+    def _on_delete(self, widget, event, data=None):
         logger.info("delete event occurred")
         self.pipeline_launcher.stop()
         return False
 
-    def destroy(self, widget, data=None):
-        logger.info("destroy signal occurred")
-        Gtk.main_quit()
+    def exit(self):
+        logger.info('Exiting')
+        self.stop_pipeline()
+        self.mainloop.quit()
+
+    def _on_destroy(self, widget=None, data=None):
+        logger.info("destroy signal occurred, exiting")
+        self.exit()
 
     def __init__(self, pipeline_launcher, show_messages=False, display_preview=True, ignore_list=[]):
         self.videowidget = None
@@ -95,8 +100,8 @@ class GtkGstController(object):
             self._on_show_messages()
 
         self.pipeline_launcher.bus.enable_sync_message_emission()
-        self.pipeline_launcher.bus.connect('sync-message::element', self.on_sync_message)
-        self.pipeline_launcher.bus.connect('message::state-changed', self.on_state_change_message)
+        self.pipeline_launcher.bus.connect('sync-message::element', self._on_sync_message)
+        self.pipeline_launcher.bus.connect('message::state-changed', self._on_state_change_message)
 
         self.poll_id = None
 
@@ -156,19 +161,18 @@ class GtkGstController(object):
             self.props_visible = False
             self.show_props_btn.set_label('<')
 
-    def on_sync_message(self, bus, message):
+    def _on_sync_message(self, bus, message):
         if message.get_structure() is None:
             return
         if message.get_structure().get_name() == 'prepare-window-handle':
             logger.debug("prepare-window-handle, {0}".format(message))
-            self._create_videowidget(message)
+            self.create_videowidget(message)
             
-    def on_state_change_message(self, bus, message):
+    def _on_state_change_message(self, bus, message):
         for prop, widget in self.prop_list:
             GObject.idle_add(self.update_widget_value, widget, prop)
-        
 
-    def _create_videowidget(self, message):
+    def create_videowidget(self, message):
         self.videowidget = None
         self.videowidget = videowidget = VideoWidget()
         videowidget.show()
@@ -235,10 +239,16 @@ class GtkGstController(object):
 
     def gtk_main(self):
         self.main()
-        self.window.connect("delete_event", self.delete_event)
-        self.window.connect("destroy", self.destroy)
+        self.window.connect("delete_event", self._on_delete)
+        self.window.connect("destroy", self._on_destroy)
         GObject.idle_add(self.run_pipeline)
-        Gtk.main()
+
+        self.mainloop = mainloop = GObject.MainLoop()
+        try:
+            mainloop.run()
+        except KeyboardInterrupt:
+            logger.info('Ctrl+C hit, quitting')
+            self.exit()
 
     def main(self):
         self._build_elements()
@@ -388,7 +398,7 @@ class GtkGstController(object):
         self.stop_pipeline()
         logger.info("Refreshing pipeline with description: {0}" .format(self.new_description))
         self.pipeline_launcher.redefine_pipeline(new_string=self.new_description)
-        self.pipeline_launcher.bus.connect('message::element', self.on_sync_message)
+        self.pipeline_launcher.bus.connect('message::element', self._on_sync_message)
         self.run_pipeline()
         self.textbuffer.set_modified(False)
         self._build_elements()
@@ -578,7 +588,7 @@ class GtkGstController(object):
             #self.stop_pipeline()
             self.pipeline_launcher.redefine_pipeline()
             #self._clean_controls()
-            self.pipeline_launcher.bus.connect('message::element', self.on_sync_message)
+            self.pipeline_launcher.bus.connect('message::element', self._on_sync_message)
             #self._build_elements()
             prop.parent_element._Gst_element.set_property(prop.name, fname) 
             self.pipeline_launcher.run()

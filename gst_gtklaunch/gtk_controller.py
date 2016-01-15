@@ -110,7 +110,8 @@ class GtkGstController(object):
         self.preview_and_control = Gtk.HBox(False, 0)
 
         self.resizable_container = Gtk.HPaned()
-        self.resizable_container.set_wide_handle(True)
+        if hasattr(self.resizable_container, 'set_wide_handle'):
+            self.resizable_container.set_wide_handle(True)
 
         self.preview_and_control.pack_start(self.resizable_container, True, True, 0)
         self.show_props_btn = show_props_btn = self._create_button("<", callback=self.toggle_show_props)
